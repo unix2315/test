@@ -46,9 +46,9 @@ class HomePageViewTest(TestCase):
         """Check, if home view response contain proper person data"""
         test_person = Person.objects.first()
         test_response = self.client.get(reverse('hello:home_page'))
-        print(test_response)
-        self.assertContains(test_response, test_person.name and test_person.last_name)
-
+        self.assertContains(test_response,
+                            test_person.name and
+                            test_person.last_name)
 
     def test_home_view_return_proper_person(self):
         """Check, if the home_view function return proper person,
@@ -57,7 +57,6 @@ class HomePageViewTest(TestCase):
         test_person.save()
         proper_person = Person.objects.first()
         test_response = self.client.get(reverse('hello:home_page'))
-        print(test_response)
         self.assertEqual(test_response.context['person'], proper_person)
         self.assertNotEqual(test_response.context['person'], test_person)
         self.assertContains(test_response, proper_person.name)
