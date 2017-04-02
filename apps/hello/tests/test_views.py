@@ -4,6 +4,14 @@ from django.test import Client
 from django.test import RequestFactory
 from apps.hello.views import home_view
 from django.core.urlresolvers import reverse
+from datetime import date
+
+
+PERSON_DATA = {
+    'name': 'Alex',
+    'last_name': 'Ivanov',
+    'date_of_birth': date(1945, 5, 9)
+}
 
 
 class HomePageViewTest(TestCase):
@@ -26,3 +34,30 @@ class HomePageViewTest(TestCase):
         test_request = RequestFactory().get(reverse('hello:home_page'))
         test_response = home_view(test_request)
         self.assertEqual(test_response.status_code, 200)
+
+    def test_home_view_return_proper_model_instance(self):
+        """Check, if home view return proper model
+        instance in context"""
+        test_person = Person(**PERSON_DATA)
+        test_person.save()
+        test_response = self.client.get(reverse('hello:home_page'))
+        self.assertIsInstance(test_response.context['person'], Person)
+
+    def test_home_view_return_proper_person_data(self):
+        """Check, if home view response contain proper person data"""
+        test_person = Person(**PERSON_DATA)
+        test_person.save()
+        test_response = self.client.get(reverse('hello:home_page'))
+        self.assertContains(test_response, test_person.name and test_person.last_name)
+
+    def test_home_view_return_proper_person(self):
+        """Check, if the home_view function return proper person,
+        if one more person present in DB"""
+        person_1 = Person(**PERSON_DATA)
+        person_1.save()
+        person_2 = Person(name='Anna')
+        person_2.save()
+        proper_person = Person.objects.first()
+        test_response = self.client.get(reverse('hello:home_page'))
+        self.assertEqual(test_response.context['person'], proper_person)
+        self.assertContains(test_response, proper_person.name)
