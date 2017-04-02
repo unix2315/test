@@ -1,19 +1,20 @@
 {% extends 'base.html' %}
 {% block content %}
+
     <div class="row">
         <div class="col-md-1 sbros_col new_padding"></div>
         <div class="col-md-4 sbros_col new_padding">
-            <div><h4>Name: Denis</h4></div>
-            <div><h4>Last name: Chernitsa</h4></div>
-            <div><h4>Date of birth: 9 Aug 1986</h4></div>
+            <div><h4>Name: {{ person.name }}</h4></div>
+            <div><h4>Last name: {{ person.last_name }}</h4></div>
+            <div><h4>Date of birth: {{ person.date_of_birth }}</h4></div>
         </div>
         <div class="col-md-4 sbros_col new_padding">
             <div><h4>Contacts:</h4></div>
-            <div><h4>Email: unix.2315@gmail.com</h4></div>
-            <div><h4>Jabber: unix2315@42cc.co</h4></div>
-            <div><h4>Skype: </h4></div>
+            <div><h4>Email: {{ person.email }}</h4></div>
+            <div><h4>Jabber: {{ person.jabber }}</h4></div>
+            <div><h4>Skype: {{ person.other_contacts|safe|linebreaks }}</h4></div>
             <div><h4>Other contacts: <br></h4></div>
-            <div><h4>Bio: </h4></div>
+            <div><h4>Bio: {{ person.bio|safe|linebreaks }}</h4></div>
         </div>
     </div>
 
