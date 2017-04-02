@@ -1,12 +1,8 @@
 # -*- coding: utf-8 -*-
 from django.conf.urls import url
-from django.views.generic.base import TemplateView
+from apps.hello.views import home_view
 
 
 urlpatterns = [
-    url(
-        r'^$',
-        TemplateView.as_view(template_name="hello/home_page.html"),
-        name='home_page'
-    ),
+    url(r'^$', home_view, name='home_page'),
 ]
