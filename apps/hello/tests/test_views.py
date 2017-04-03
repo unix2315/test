@@ -60,3 +60,10 @@ class HomePageViewTest(TestCase):
         self.assertEqual(test_response.context['person'], proper_person)
         self.assertNotEqual(test_response.context['person'], test_person)
         self.assertContains(test_response, proper_person.name)
+
+    def test_home_view_no_data_in_db(self):
+        """Check, if home_view return correct html, when no data in Person model"""
+        Person.objects.all().delete()
+        test_response = self.client.get(reverse('hello:home_page'))
+        self.assertEqual(test_response.context['person'], None)
+        self.assertContains(test_response, "No person was found")
