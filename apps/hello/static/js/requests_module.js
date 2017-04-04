@@ -1,4 +1,4 @@
-var CORE;
+var CORE, REQTABLE, PAGEHEHEADUPDATE;
 CORE = (function(){
     var moduleData = {};
     return{
@@ -38,16 +38,90 @@ CORE = (function(){
 
 REQTABLE = (function(){
     var moduleName = 'REQTABLE',
-        that;
+        that,
+        reqViewedStatus; //Status - all new requests is viewed
+    //Private help method, cloning tr elements from table in DOM
+    function cloneDomTrEls(){
+        var $trEls;
+        $trEls = $('tr', '#requests_table_content').clone();
+        return $trEls
+    }
+    //Private help method, removing 'NEW' from td elements
+    function removeNewStatus(i, $trEls){
+        var newTdEl;
+        newTdEl = $trEls[i].getElementsByTagName('td')[5];
+        if(newTdEl){
+			newTdEl.innerHTML = ''
+        }
+        return false
+    }
+    //Private help metod, inserting edit collections of td elements in DOM
+    function insertNewReqTable($trEls){
+        var $inserTable,
+            $domReqTable;
+        $inserTable = $('<tbody id="requests_table_content"></tbody>');
+        $inserTable.append($trEls);
+        $domReqTable = $('#requests_table_content');
+        if(!$domReqTable.length){
+            $domReqTable = $('#no_requests_table')
+        }
+        $domReqTable.replaceWith($inserTable);
+        return false
+    }
     return{
         coreRegister: function(){
             CORE.registerModule(moduleName, this);
             return false
         },
         init: function(){
+			var $reqTable;
+            that = this;
+			$reqTable = $('#requests_table');
+            $reqTable.on('mouseenter', this.removeAllNewStatus);
+            reqViewedStatus = false;
+            return false
+        },
+        //Facade public method removing all 'NEW' from DOM
+        removeAllNewStatus: function(){
+            var $trEls;
+            $trEls = cloneDomTrEls();
+            if($trEls.length&&reqViewedStatus==false){
+                for(var i= 0, max = $trEls.length; i < max; i++){
+                    removeNewStatus(i, $trEls)
+                }
+                insertNewReqTable($trEls);
+                CORE.triggerEvent({
+                    type: 'removeAllNewStatus'
+                });
+                reqViewedStatus = true
+            }
         }
     };
 }());
 REQTABLE.coreRegister();
+
+PAGEHEHEADUPDATE = (function(){
+    var moduleName = 'PAGEHEHEADUPDATE',
+		newStatus, //'NEW' counter for page header
+        that;
+    return{
+        coreRegister: function() {
+            CORE.registerModule(moduleName, this);
+        },
+        init: function(){
+            that = this;
+            newStatus = 0;
+            CORE.registerEvents(moduleName,{
+                'removeAllNewStatus': this.resetPageHeader
+            });
+        },
+		//Reset page title after removing all 'NEW' status
+        resetPageHeader: function(){
+           newStatus = 0;
+           $('title').replaceWith('<title>('+newStatus+') new requests</title>')
+        }
+    };
+})();
+PAGEHEHEADUPDATE.coreRegister();
 
 CORE.startAllMod()
