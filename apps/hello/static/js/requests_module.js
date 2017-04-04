@@ -1,4 +1,4 @@
-var CORE, REQTABLE, AJAXREQ, PAGEHEADERUPDATER;
+var CORE;
 CORE = (function(){
     var moduleData = {};
     return{
@@ -35,5 +35,19 @@ CORE = (function(){
         }
     };
 })();
+
+REQTABLE = (function(){
+    var moduleName = 'REQTABLE',
+        that;
+    return{
+        coreRegister: function(){
+            CORE.registerModule(moduleName, this);
+            return false
+        },
+        init: function(){
+        }
+    };
+}());
+REQTABLE.coreRegister();
 
 CORE.startAllMod()
