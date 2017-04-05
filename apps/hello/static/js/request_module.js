@@ -92,6 +92,9 @@ REQTABLE = (function(){
         init: function(){
 			var $reqTable;
             that = this;
+            $(function(){
+                that.initCountNewStatus()
+            });
 			$reqTable = $('#requests_table');
             $reqTable.on('mouseenter', this.removeAllNewStatus);
             reqViewedStatus = false;
@@ -99,6 +102,27 @@ REQTABLE = (function(){
                 'newAjaxRespPoll': this.addNewRequests
             });
             return false
+        },
+		
+        initCountNewStatus: function(){
+            var $trEls,
+                lastViewedReq,
+				newTdEl,
+				newCount;
+            newCount = 0;
+            $trEls = cloneDomTrEls();
+            if($trEls.length){
+				for(var i=0, max = $trEls.length; i < max; i++){
+					newTdEl = $trEls[i].getElementsByTagName('td')[5];
+					if(newTdEl.innerHTML=='NEW'){
+						newCount += 1
+					}
+				}
+                CORE.triggerEvent({
+                    type: 'initCountNewStatus',
+                    data: newCount
+                });
+            }
         },
         //Facade public method removing all 'NEW' from DOM
         removeAllNewStatus: function(){
@@ -245,12 +269,17 @@ PAGEHEHEADUPDATE = (function(){
         },
         init: function(){
             that = this;
-            newStatus = 10;
+            //newStatus = 0;
             CORE.registerEvents(moduleName,{
                 'removeAllNewStatus': this.resetPageHeader,
-				'newAjaxRespPoll': this.ajaxUpdatePageHeader
+				'newAjaxRespPoll': this.ajaxUpdatePageHeader,
+				'initCountNewStatus': this.initNewStatus
             });
         },
+		//Return init count of new requests
+		initNewStatus: function(data){
+			newStatus = data
+		},
 		//Reset page title after removing all 'NEW' status
         resetPageHeader: function(){
            newStatus = 0;
