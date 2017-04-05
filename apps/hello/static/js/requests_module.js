@@ -46,6 +46,14 @@ REQTABLE = (function(){
         $trEls = $('tr', '#requests_table_content').clone();
         return $trEls
     }
+	//Private help method, unit new tr element collections with DOM one
+    function unitTrEls($trEls, $reqTrEls){
+        $trEls = $reqTrEls.add($trEls);
+        if($trEls.length > 10){
+            $trEls = $trEls.slice(0, 10)
+        }
+        return $trEls
+    }
     //Private help method, removing 'NEW' from td elements
     function removeNewStatus(i, $trEls){
         var newTdEl;
@@ -53,6 +61,14 @@ REQTABLE = (function(){
         if(newTdEl){
 			newTdEl.innerHTML = ''
         }
+        return false
+    }
+    function updateTabNum(i, $trEls){
+        var numStr, num;
+        $trEls[i].getElementsByTagName('td')[0].remove();
+        num = i+1;
+        numStr = '<td>'+num+'</td>';
+        $trEls[i].insertAdjacentHTML('afterBegin', numStr);
         return false
     }
     //Private help metod, inserting edit collections of td elements in DOM
@@ -79,6 +95,9 @@ REQTABLE = (function(){
 			$reqTable = $('#requests_table');
             $reqTable.on('mouseenter', this.removeAllNewStatus);
             reqViewedStatus = false;
+			CORE.registerEvents(moduleName, {
+                'newAjaxRespPoll': this.addNewRequests
+            });
             return false
         },
         //Facade public method removing all 'NEW' from DOM
@@ -95,7 +114,22 @@ REQTABLE = (function(){
                 });
                 reqViewedStatus = true
             }
-        }
+        },
+		//Facade ppublic method insrt new tr elements collections to DOM
+        addNewRequests: function($reqTrEls){
+            var $trEls;
+            $trEls = cloneDomTrEls();
+            if($trEls.length){
+                $trEls = unitTrEls($trEls, $reqTrEls)
+            }else{
+                $trEls = $reqTrEls
+            }
+            for(var i= 0, max = $trEls.length; i < max; i++){
+                updateTabNum(i, $trEls);
+            }
+            insertNewReqTable($trEls);
+            reqViewedStatus = false;
+        },
     };
 }());
 REQTABLE.coreRegister();
@@ -140,7 +174,7 @@ AJAXREQ = (function(){
                 ajaxReqArr[i].path,
                 ajaxReqArr[i]['status_code'],
                 ajaxReqArr[i]['method'],
-                newVar
+                'NEW'
             ];
             reqTrHtml = '<tr><td>' + reqTrArr.join('</td><td>') + '</td></tr>';
             $reqTrEls = $reqTrEls.add(reqTrHtml);
