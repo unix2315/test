@@ -104,6 +104,26 @@ AJAXREQ = (function(){
     var that,
         moduleName = 'AJAXREQ',
         ajaxReqPollingInterval;
+	//Create data array to mock response from server 
+	function getMockAjaxData(){
+		var ajaxReqArr,
+			reqObj,
+			objNum;
+		ajaxReqArr = [];
+		reqObj = {
+			id: 0,
+			method: "GET",
+			path: "/requests/",
+			request_time: "2017-04-05T07:33:37",
+			status_code: 200
+		};
+		
+		objNum = Math.floor(Math.random() * (4));
+		for(var i= 0; i < objNum; i++){
+			ajaxReqArr.push(reqObj)
+		}
+		return ajaxReqArr
+	}
     return{
         coreRegister: function() {
             CORE.registerModule(moduleName, this);
@@ -120,11 +140,14 @@ AJAXREQ = (function(){
         },
 		//Start ajax requests polling via seInterval function
         startGetAjaxReqPolling: function(){
+			var ajaxReqArr;
             if(ajaxReqPollingInterval==null){
                 ajaxReqPollingInterval = setInterval(function(){
                 var ajaxRequestData = {};
                 ajaxRequestData['last_request_time'] = sessionStorage["lastRequestTime"];
                 //$.get('/requests/', ajaxRequestData).done(that.handleGetAjaxReqPoll)
+				ajaxReqArr = getMockAjaxData();
+				that.handleGetAjaxReqPoll(ajaxReqArr)
             }, 4000)
             }
         },
@@ -132,7 +155,7 @@ AJAXREQ = (function(){
         handleGetAjaxReqPoll: function(ajaxReqArr){
             var $reqTrEls;
             if(ajaxReqArr.length) {
-				//handle ajaxReqArr
+				console.log(ajaxReqArr)
             }
         },
         //Stop ajax requests polling interval
