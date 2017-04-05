@@ -116,9 +116,10 @@ REQTABLE = (function(){
             }
         },
 		//Facade ppublic method insrt new tr elements collections to DOM
-        addNewRequests: function($reqTrEls){
+        addNewRequests: function(data){
             var $trEls;
             $trEls = cloneDomTrEls();
+			$reqTrEls = data.$reqTrEls
             if($trEls.length){
                 $trEls = unitTrEls($trEls, $reqTrEls)
             }else{
@@ -137,7 +138,8 @@ REQTABLE.coreRegister();
 AJAXREQ = (function(){
     var that,
         moduleName = 'AJAXREQ',
-        ajaxReqPollingInterval;
+        ajaxReqPollingInterval,
+		newCount;
 	//Create data array to mock response from server 
 	function getMockAjaxData(){
 		var ajaxReqArr,
@@ -200,12 +202,12 @@ AJAXREQ = (function(){
 			var ajaxReqArr;
             if(ajaxReqPollingInterval==null){
                 ajaxReqPollingInterval = setInterval(function(){
-                var ajaxRequestData = {};
-                ajaxRequestData['last_request_time'] = sessionStorage["lastRequestTime"];
-                //$.get('/requests/', ajaxRequestData).done(that.handleGetAjaxReqPoll)
-				ajaxReqArr = getMockAjaxData();
-				that.handleGetAjaxReqPoll(ajaxReqArr)
-            }, 4000)
+					var ajaxRequestData = {};
+					ajaxRequestData['last_request_time'] = sessionStorage["lastRequestTime"];
+					//$.get('/requests/', ajaxRequestData).done(that.handleGetAjaxReqPoll)
+					ajaxReqArr = getMockAjaxData();
+					that.handleGetAjaxReqPoll(ajaxReqArr)
+				}, 4000)
             }
         },
 		//Handle ajax response data, running helper method and trigger newAjaxRespPoll event
@@ -215,7 +217,10 @@ AJAXREQ = (function(){
 				$reqTrEls = getReqTrEls(ajaxReqArr);
 				CORE.triggerEvent({
                     type: 'newAjaxRespPoll',
-                    data: $reqTrEls
+                    data: {
+						'$reqTrEls': $reqTrEls,
+						'newCount': newCount
+					}
                 })
             }
         },
@@ -240,16 +245,25 @@ PAGEHEHEADUPDATE = (function(){
         },
         init: function(){
             that = this;
-            newStatus = 0;
+            newStatus = 10;
             CORE.registerEvents(moduleName,{
-                'removeAllNewStatus': this.resetPageHeader
+                'removeAllNewStatus': this.resetPageHeader,
+				'newAjaxRespPoll': this.ajaxUpdatePageHeader
             });
         },
 		//Reset page title after removing all 'NEW' status
         resetPageHeader: function(){
            newStatus = 0;
            $('title').replaceWith('<title>('+newStatus+') new requests</title>')
-        }
+        },
+		//Update page title, by new requests 
+        ajaxUpdatePageHeader: function(data){
+            newStatus += data.newCount;
+            if(newStatus > 10){
+                newStatus = 10
+            }
+            $('title').replaceWith('<title>('+newStatus+') new requests</title>')
+		}
     };
 })();
 PAGEHEHEADUPDATE.coreRegister();
