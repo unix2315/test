@@ -124,6 +124,29 @@ AJAXREQ = (function(){
 		}
 		return ajaxReqArr
 	}
+	//Private helper method take JSON data from server 
+	//return tr elements collections to insert in requests table
+    function getReqTrEls(ajaxReqArr){
+        var reqTrArr,
+            $reqTrEls,
+            reqTrHtml;
+        newCount = 0;
+        $reqTrEls = $();
+        for (var i=0; i<ajaxReqArr.length; i++) {
+			newCount += 1;
+            reqTrArr = [
+                +i + 1,
+                ajaxReqArr[i].request_time,
+                ajaxReqArr[i].path,
+                ajaxReqArr[i]['status_code'],
+                ajaxReqArr[i]['method'],
+                newVar
+            ];
+            reqTrHtml = '<tr><td>' + reqTrArr.join('</td><td>') + '</td></tr>';
+            $reqTrEls = $reqTrEls.add(reqTrHtml);
+        }
+        return $reqTrEls
+    }
     return{
         coreRegister: function() {
             CORE.registerModule(moduleName, this);
@@ -155,7 +178,11 @@ AJAXREQ = (function(){
         handleGetAjaxReqPoll: function(ajaxReqArr){
             var $reqTrEls;
             if(ajaxReqArr.length) {
-				console.log(ajaxReqArr)
+				$reqTrEls = getReqTrEls(ajaxReqArr);
+				CORE.triggerEvent({
+                    type: 'newAjaxRespPoll',
+                    data: $reqTrEls
+                })
             }
         },
         //Stop ajax requests polling interval
