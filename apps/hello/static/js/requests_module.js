@@ -1,4 +1,4 @@
-var CORE, REQTABLE, PAGEHEHEADUPDATE;
+var CORE, REQTABLE, PAGEHEHEADUPDATE, AJAXREQ;
 CORE = (function(){
     var moduleData = {};
     return{
@@ -99,6 +99,52 @@ REQTABLE = (function(){
     };
 }());
 REQTABLE.coreRegister();
+
+AJAXREQ = (function(){
+    var that,
+        moduleName = 'AJAXREQ',
+        ajaxReqPollingInterval;
+    return{
+        coreRegister: function() {
+            CORE.registerModule(moduleName, this);
+        },
+        init: function(){
+            var $lastRequestTime;
+            that = this;
+            sessionStorage["lastRequestTime"] = '';
+            $lastRequestTime = $('#last_request_time');
+            if ($lastRequestTime.length) {
+                sessionStorage["lastRequestTime"] = $lastRequestTime.text();
+            }
+            this.startGetAjaxReqPolling();
+        },
+		//Start ajax requests polling via seInterval function
+        startGetAjaxReqPolling: function(){
+            if(ajaxReqPollingInterval==null){
+                ajaxReqPollingInterval = setInterval(function(){
+                var ajaxRequestData = {};
+                ajaxRequestData['last_request_time'] = sessionStorage["lastRequestTime"];
+                //$.get('/requests/', ajaxRequestData).done(that.handleGetAjaxReqPoll)
+            }, 4000)
+            }
+        },
+		//Handle ajax response data, running helper method and trigger newAjaxRespPoll event
+        handleGetAjaxReqPoll: function(ajaxReqArr){
+            var $reqTrEls;
+            if(ajaxReqArr.length) {
+				//handle ajaxReqArr
+            }
+        },
+        //Stop ajax requests polling interval
+        stopGetAjaxReqPolling: function(){
+            if(ajaxReqPollingInterval!=null){
+                clearInterval(ajaxReqPollingInterval)
+            }
+            ajaxReqPollingInterval = null
+        }
+    };
+})();
+AJAXREQ.coreRegister();
 
 PAGEHEHEADUPDATE = (function(){
     var moduleName = 'PAGEHEHEADUPDATE',
