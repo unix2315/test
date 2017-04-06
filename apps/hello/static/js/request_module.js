@@ -42,8 +42,14 @@ REQTABLE = (function(){
         reqViewedStatus; //Status - all new requests is viewed
     //Private help method, cloning tr elements from table in DOM
     function cloneDomTrEls(){
-        var $trEls;
-        $trEls = $('tr', '#requests_table_content').clone();
+        var $tbodyContent,
+            $trEls;
+        $tbodyContent = $("#requests_table_content");
+        if($tbodyContent.length){
+            $trEls = $('tr', '#requests_table_content').clone();
+        }else{
+            $trEls = $()
+        }
         return $trEls
     }
 	//Private help method, unit new tr element collections with DOM one
@@ -111,18 +117,18 @@ REQTABLE = (function(){
 				newCount;
             newCount = 0;
             $trEls = cloneDomTrEls();
-            if($trEls.length){
-				for(var i=0, max = $trEls.length; i < max; i++){
-					newTdEl = $trEls[i].getElementsByTagName('td')[5];
-					if(newTdEl.innerHTML=='NEW'){
-						newCount += 1
-					}
-				}
-                CORE.triggerEvent({
-                    type: 'initCountNewStatus',
-                    data: newCount
-                });
+            if($trEls.length) {
+                for (var i = 0, max = $trEls.length; i < max; i++) {
+                    newTdEl = $trEls[i].getElementsByTagName('td')[5];
+                    if (newTdEl.innerHTML == 'NEW') {
+                        newCount += 1
+                    }
+                }
             }
+            CORE.triggerEvent({
+                type: 'initCountNewStatus',
+                data: newCount
+            })
         },
         //Facade public method removing all 'NEW' from DOM
         removeAllNewStatus: function(){
@@ -143,7 +149,7 @@ REQTABLE = (function(){
         addNewRequests: function(data){
             var $trEls;
             $trEls = cloneDomTrEls();
-			$reqTrEls = data.$reqTrEls
+			$reqTrEls = data.$reqTrEls;
             if($trEls.length){
                 $trEls = unitTrEls($trEls, $reqTrEls)
             }else{
@@ -154,7 +160,7 @@ REQTABLE = (function(){
             }
             insertNewReqTable($trEls);
             reqViewedStatus = false;
-        },
+        }
     };
 }());
 REQTABLE.coreRegister();
@@ -278,7 +284,8 @@ PAGEHEHEADUPDATE = (function(){
         },
 		//Return init count of new requests
 		initNewStatus: function(data){
-			newStatus = data
+			newStatus = data;
+            $('title').replaceWith('<title>('+newStatus+') new requests</title>')
 		},
 		//Reset page title after removing all 'NEW' status
         resetPageHeader: function(){
