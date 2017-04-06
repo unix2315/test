@@ -6,6 +6,7 @@ from apps.hello.views import home_view, requests_view
 from django.core.urlresolvers import reverse
 from datetime import date
 from apps.hello.models import Person, RequestsLog
+import json
 
 
 PERSON_DATA = {
@@ -122,3 +123,28 @@ class RequestsViewTest(TestCase):
         last_request = RequestsLog.objects.first()
         test_response = self.client.get(reverse('hello:requests_page'))
         self.assertEqual(test_response.context['requests'][0], last_request)
+
+    def test_ajax_requests_view_return_ten_last_requests(self):
+        """Check, if ajax request return last ten requests"""
+        for i in range(20):
+            RequestsLog(**REQUEST_DATA).save()
+        test_response = self.client.get(reverse('hello:requests_page'),
+                                        {'last_request_time': ''},
+                                        HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        ajax_response = json.loads(test_response.content)
+        self.assertEqual(len(ajax_response), 10)
+
+    def test_ajax_requests_view_proper_number_of_requests(self):
+        """
+        Check, if ajax request return only requests,
+        with request_time more than last_request_time parameter
+        """
+        for i in range(20):
+            RequestsLog(**REQUEST_DATA).save()
+        last_requests = RequestsLog.objects.all()
+        third_last_request = last_requests[2].request_time
+        test_response = self.client.get(reverse('requests:requests_page'),
+                                        {'last_request_time': third_last_request},
+                                        HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        ajax_response = json.loads(test_response.content)
+        self.assertEqual(len(ajax_response), 2)
