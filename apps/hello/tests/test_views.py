@@ -113,3 +113,12 @@ class RequestsViewTest(TestCase):
         test_response = self.client.get(reverse('hello:requests_page'))
         self.assertEqual(len(test_response.context['requests']), 10)
         self.assertContains(test_response, '/requests/', count=10)
+
+    def test_requests_view_return_requests_in_proper_order(self):
+        """Check, if requests_view return requests
+        in proper ordering by time"""
+        for i in range(20):
+            RequestsLog(**REQUEST_DATA).save()
+        last_request = RequestsLog.objects.first()
+        test_response = self.client.get(reverse('hello:requests_page'))
+        self.assertEqual(test_response.context['requests'][0], last_request)

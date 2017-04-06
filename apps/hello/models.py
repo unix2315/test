@@ -23,5 +23,8 @@ class RequestsLog(models.Model):
     path = models.CharField(max_length=30)
     status_code = models.IntegerField(max_length=3)
 
+    class Meta:
+        ordering = ["-request_time"]
+
     def __unicode__(self):
         return u'%s %s %s' % (self.request_time, self.path, self.method)
