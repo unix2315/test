@@ -3,10 +3,10 @@ from django.test import TestCase
 from django.test import Client
 from django.test import RequestFactory
 from apps.hello.views import home_view, requests_view
-from django.core.urlresolvers import reverse
 from datetime import date
 from apps.hello.models import Person, RequestsLog
 import json
+from django.core.urlresolvers import reverse
 
 
 PERSON_DATA = {
