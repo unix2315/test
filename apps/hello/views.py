@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.shortcuts import render
-from apps.hello.models import Person
+from apps.hello.models import Person, RequestsLog
 
 
 def home_view(request):
@@ -10,4 +10,6 @@ def home_view(request):
 
 
 def requests_view(request):
-    return render(request, 'hello/requests_page.html')
+    requests = RequestsLog.objects.all()[:10]
+    context = {'requests': requests}
+    return render(request, 'hello/requests_page.html', context)
