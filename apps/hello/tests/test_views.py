@@ -2,7 +2,7 @@
 from django.test import TestCase
 from django.test import Client
 from django.test import RequestFactory
-from apps.hello.views import home_view
+from apps.hello.views import home_view, requests_view
 from django.core.urlresolvers import reverse
 from datetime import date
 from apps.hello.models import Person
@@ -31,7 +31,7 @@ class HomePageViewTest(TestCase):
         self.assertTemplateUsed(response, 'hello/home_page.html')
 
     def test_home_view_return_correct_status_code(self):
-        """Check, if edit_view return status code 200"""
+        """Check, if home_view return status code 200"""
         test_request = RequestFactory().get(reverse('hello:home_page'))
         test_response = home_view(test_request)
         self.assertEqual(test_response.status_code, 200)
@@ -68,3 +68,22 @@ class HomePageViewTest(TestCase):
         test_response = self.client.get(reverse('hello:home_page'))
         self.assertEqual(test_response.context['person'], None)
         self.assertContains(test_response, "No person was found")
+
+
+class RequestsViewTest(TestCase):
+
+    def test_request_page_return_correct_status_code(self):
+        """Check, if request to requests_page return status code 200"""
+        self.response = self.client.get(reverse('hello:requests_page'))
+        self.assertEqual(self.response.status_code, 200)
+
+    def test_requests_page_uses_proper_template(self):
+        """Check, if home_page view render right template"""
+        response = self.client.get(reverse('hello:requests_page'))
+        self.assertTemplateUsed(response, 'hello/requests_page.html')
+
+    def test_requests_view_return_correct_status_code(self):
+        """Check, if requests_view return status code 200"""
+        test_request = RequestFactory().get(reverse('hello:requests_page'))
+        test_response = requests_view(test_request)
+        self.assertEqual(test_response.status_code, 200)
