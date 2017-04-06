@@ -143,8 +143,10 @@ class RequestsViewTest(TestCase):
             RequestsLog(**REQUEST_DATA).save()
         last_requests = RequestsLog.objects.all()
         third_last_request = last_requests[2].request_time
-        test_response = self.client.get(reverse('requests:requests_page'),
-                                        {'last_request_time': third_last_request},
-                                        HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        test_response = self.client.get(
+            reverse('hello:requests_page'),
+            {'last_request_time': third_last_request},
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
         ajax_response = json.loads(test_response.content)
         self.assertEqual(len(ajax_response), 2)
