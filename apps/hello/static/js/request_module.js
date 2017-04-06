@@ -99,7 +99,7 @@ REQTABLE = (function(){
 			var $reqTable;
             that = this;
             $(function(){
-                that.initCountNewStatus()
+                that.initReqTableStatus()
             });
 			$reqTable = $('#requests_table');
             $reqTable.on('mouseenter', this.removeAllNewStatus);
@@ -110,20 +110,24 @@ REQTABLE = (function(){
             return false
         },
 		
-        initCountNewStatus: function(){
+        initReqTableStatus: function(){
             var $trEls,
-                lastViewedReq,
+                lastReqTime,
 				newTdEl,
 				newCount;
             newCount = 0;
             $trEls = cloneDomTrEls();
             if($trEls.length) {
+                lastReqTime = $trEls[0].getElementsByTagName('td')[1].innerHTML;
+                sessionStorage["lastRequestTime"] = lastReqTime;
                 for (var i = 0, max = $trEls.length; i < max; i++) {
                     newTdEl = $trEls[i].getElementsByTagName('td')[5];
                     if (newTdEl.innerHTML == 'NEW') {
                         newCount += 1
                     }
                 }
+            }else{
+                sessionStorage["lastRequestTime"] = ''
             }
             CORE.triggerEvent({
                 type: 'initCountNewStatus',
@@ -218,25 +222,19 @@ AJAXREQ = (function(){
             CORE.registerModule(moduleName, this);
         },
         init: function(){
-            var $lastRequestTime;
             that = this;
-            sessionStorage["lastRequestTime"] = '';
-            $lastRequestTime = $('#last_request_time');
-            if ($lastRequestTime.length) {
-                sessionStorage["lastRequestTime"] = $lastRequestTime.text();
-            }
             this.startGetAjaxReqPolling();
         },
 		//Start ajax requests polling via seInterval function
         startGetAjaxReqPolling: function(){
-			var ajaxReqArr;
+			//var ajaxReqArr;
             if(ajaxReqPollingInterval==null){
                 ajaxReqPollingInterval = setInterval(function(){
 					var ajaxRequestData = {};
 					ajaxRequestData['last_request_time'] = sessionStorage["lastRequestTime"];
-					//$.get('/requests/', ajaxRequestData).done(that.handleGetAjaxReqPoll)
-					ajaxReqArr = getMockAjaxData();
-					that.handleGetAjaxReqPoll(ajaxReqArr)
+					$.get('/requests/', ajaxRequestData).done(that.handleGetAjaxReqPoll)
+					//ajaxReqArr = getMockAjaxData();
+					//that.handleGetAjaxReqPoll(ajaxReqArr)
 				}, 4000)
             }
         },
@@ -244,6 +242,7 @@ AJAXREQ = (function(){
         handleGetAjaxReqPoll: function(ajaxReqArr){
             var $reqTrEls;
             if(ajaxReqArr.length) {
+                sessionStorage["lastRequestTime"] = ajaxReqArr[0].request_time;
 				$reqTrEls = getReqTrEls(ajaxReqArr);
 				CORE.triggerEvent({
                     type: 'newAjaxRespPoll',
