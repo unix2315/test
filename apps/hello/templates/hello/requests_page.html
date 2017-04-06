@@ -18,16 +18,16 @@
                         <th>Status</th>
                     </tr>
                 </thead>
-                {% if True %}
+                {% if requests %}
                     <div id="last_request_time" style="display:none;">{{last_request.request_time|date:'c' }}</div>
                         <tbody id="requests_table_content">
-                            {% for req in 10|create_range %}
+                            {% for req in requests %}
                                 <tr>
                                     <td>{{forloop.counter}}</td>
-                                    <td>2017-04-04T00:00:00</td>
-                                    <td>/requests/</td>
-                                    <td>200</td>
-                                    <td>GET</td>
+                                    <td>{{ req.request_time|date:'c' }}</td>
+                                    <td>{{ req.path }}</td>
+                                    <td>{{ req.status_code }}</td>
+                                    <td>{{ req.method }}</td>
                                     <td>NEW</td>
                                 </tr>
                             {% endfor %}
@@ -35,7 +35,6 @@
                 {% else %}
                     <tbody id="no_requests_table">
                         <tr>
-                            <!--Объединить 5 ячеек, выравнивание по центру-->
                             <td colspan="5" align="center"><h3>No requests was found</h3></td>
                         </tr>
                     </tbody>
