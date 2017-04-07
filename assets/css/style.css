@@ -26,7 +26,7 @@ body {
     display: none;
 }
 
-.errorlist{
+.errorlist, .error{
     margin: 0px;
     color: #ff383a;
 }
@@ -45,9 +45,7 @@ body {
 .file-upload:hover {
      background: #1636cf;
 }
-#id_photo{
-    display: none; /* Обязательно скрываем настоящий Input File */
-}
+
 .file-upload label {
      /* Растягиваем label на всю возможную площадь блока .file-upload */
      display: block;

@@ -2,21 +2,21 @@
 {% load staticfiles %}
 {% block content %}
     <div class="row">
-        <form id="id_edit_form" action="" method="post" novalidate enctype="multipart/form-data">
+        <form id="id_edit_form" action="" method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="col-md-2 sbros_col new_padding text-right"></div>
             <div class="col-md-3 sbros_col new_padding">
                 <div class="form-group">
                     <label for="id_name">Name:</label>
-                    <input class="form-control" id="id_name" type="text"/>
+                    <input class="form-control" id="id_name" name="name" type="text"/>
                 </div>
                 <div class="form-group">
                     <label for="id_last_name">Last name:</label>
-                    <input class="form-control" id="id_last_name" type="text"/>
+                    <input class="form-control" id="id_last_name" name="last_name" required type="text"/>
                 </div>
                 <div class="form-group">
                     <label for="id_date_of_birth">Date of birth:</label>
-                    <input class="form-control datepicker" id="id_date_of_birth" type="text"/>
+                    <input class="form-control datepicker" id="id_date_of_birth" name="date_of_birth" type="text"/>
                 </div>
                 <div class="form-group">
                     <label for="id_photo">Photo:</label><br/>
@@ -24,18 +24,18 @@
                     <img id="person_img" src="{{ STATIC_URL }}img/no_photo.jpg" class="text-center"><br/>
                     <input id="photo-clear_id" name="photo-clear" type="checkbox" />
                     <label for="photo-clear_id">Clear</label>
-                    <input id="id_photo" name="foto" type="file" />
+                    <input id="id_photo" name="photo" type="file" />
                 </div>
             </div>
             <div class="col-md-1 sbros_col new_padding"></div>
             <div class="col-md-3 sbros_col new_padding">
                 <div class="form-group">
                     <label for="id_email">Email:</label>
-                    <input class="form-control" id="id_email" type="text"/>
+                    <input class="form-control" id="id_email" name="email" type="email"/>
                 </div>
                 <div class="form-group">
                     <label for="id_jabber">Jabber:</label>
-                    <input class="form-control" id="id_jabber" type="text"/>
+                    <input class="form-control" id="id_jabber" name="jabber" type="text"/>
                 </div>
                 <div class="form-group">
                     <label for="id_skype">Skype:</label>
@@ -65,6 +65,8 @@
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
     <script src="http://malsup.github.com/jquery.form.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
     <script src='{% static "js/datepicker.js" %}'></script>
     <script src='{% static "js/ajax_form_module.js" %}'></script>
 {% endblock scripts %}

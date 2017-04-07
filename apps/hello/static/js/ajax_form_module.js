@@ -3,13 +3,26 @@ var AJAXFORM;
 AJAXFORM = (function(){
     var moduleName = 'AJAXFORM',
         that,
-        options = {
-            dataType: 'json',
-            beforeSubmit: handleFormData,
-            //success: handleResponseData,
-            error: handleResponseData
-        };
-
+        validOpts,
+        ajaxSubmitOpts;
+    ajaxSubmitOpts = {
+        dataType: 'json',
+        beforeSubmit: handleFormData,
+        //success: handleResponseData,
+        error: handleResponseData
+    };
+    validOpts = {
+        rules: {
+            name: "required",
+            last_name: "required",
+            date_of_birth: "required",
+            email: "email",
+            jabber: "email"
+        },
+        submitHandler: function(form) {
+            $(form).ajaxSubmit(ajaxSubmitOpts)
+        }
+    };
     function handleFormData(){
         $("#form_submit_state").hide();
         blockForm()
@@ -40,13 +53,26 @@ AJAXFORM = (function(){
             $("#form_submit_state").hide()
         }, 1500)
     }
+    validOpts = {
+        rules: {
+            name: "required",
+            last_name: "required",
+            date_of_birth: "required",
+            email: "email",
+            jabber: "email"
+        },
+        submitHandler: function(form) {
+            $(form).ajaxSubmit(ajaxSubmitOpts)
+        }
+    };
     return{
         init: function(){
-            $('#id_edit_form').submit(function() {
-                $(this).ajaxSubmit(options);
-                return false;
+            $(function(){
+                $('#id_edit_form').validate(validOpts)
             });
         }
     };
 }());
+
+
 AJAXFORM.init();
