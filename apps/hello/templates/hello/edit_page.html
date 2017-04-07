@@ -21,7 +21,7 @@
                 <div class="form-group">
                     <label for="id_foto">Photo:</label><br/>
                     <!--Вручную определяем поле chckbox чтоб clear существующее фото из БД-->
-                    <div id="img_area"><img id="person_img" src="" alt="No photo" class="text-center"><br/></div>
+                    <img id="person_img" src="{{ STATIC_URL }}img/no_photo.jpg" class="text-center"><br/>
                     <input id="foto-clear_id" name="foto-clear" type="checkbox" />
                     <label for="foto-clear_id">Clear</label>
                     <input id="id_foto" name="foto" type="file" />
