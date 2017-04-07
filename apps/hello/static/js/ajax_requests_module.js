@@ -102,6 +102,7 @@ REQTABLE = (function(){
                 that.initReqTableStatus()
             });
 			$reqTable = $('#requests_table');
+            $(window).on('focus', this.removeAllNewStatus);
             $reqTable.on('mouseenter', this.removeAllNewStatus);
             reqViewedStatus = false;
 			CORE.registerEvents(moduleName, {
@@ -223,6 +224,19 @@ AJAXREQ = (function(){
         },
         init: function(){
             that = this;
+            $(window).on('focus', function(){
+                localStorage['activeTab'] = true;
+                that.startGetAjaxReqPolling()
+            });
+            $(window).on('blur', function(){
+                localStorage['activeTab'] = false
+            });
+             $(window).on('storage', )
+            $(window).on('storage', function(event){
+                if(event.key==='activeTab'){
+                    that.stopGetAjaxReqPolling()
+                }
+            });
             this.startGetAjaxReqPolling();
         },
 		//Start ajax requests polling via seInterval function
