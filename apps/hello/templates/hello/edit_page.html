@@ -50,13 +50,7 @@
                     <textarea class="form-control" id="id_bio" cols="23" rows="3"></textarea>
                 </div>
                 <div id="loading_state" style="display:none;"><span>loading...</span></div>
-                {% if messages %}
-                    {% for message in messages %}
-                        <div id="form_submit_state">{{ message }}</div>
-                    {% endfor %}
-                {% else %}
-                     <div id="form_submit_state" style="display:none;">"Form submit successfully!"</div>
-                {% endif %}
+                <div id="form_submit_state" style="display:none;">"Form submit successfully!"</div>
                 <button id="id_submit_btn" type="submit" class="btn btn-primary">Submit</button>
             </div>
         </form>
@@ -72,4 +66,5 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
     <script src="http://malsup.github.com/jquery.form.js"></script>
     <script src='{% static "js/datepicker.js" %}'></script>
+    <script src='{% static "js/ajax_form_module.js" %}'></script>
 {% endblock scripts %}
