@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block content %}
+    <div class="row">
+        <form id="id_edit_form" action="" method="post" novalidate enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="col-md-2 sbros_col new_padding text-right"></div>
+            <div class="col-md-3 sbros_col new_padding">
+                <div class="form-group">
+                    <label for="id_name">Name:</label>
+                    <input class="form-control" id="id_name" type="text"/>
+                </div>
+                <div class="form-group">
+                    <label for="id_last_name">Last name:</label>
+                    <input class="form-control" type="text"/>
+                </div>
+                <div class="form-group">
+                    <label for="id_date_of_birth">Date of birth:</label>
+                    <input class="form-control" type="text"/>
+                </div>
+                <div class="form-group">
+                    <label for="id_foto">Photo:</label><br/>
+                    <!--Вручную определяем поле chckbox чтоб clear существующее фото из БД-->
+                    <div id="img_area"><img id="person_img" src="" alt="No photo" class="text-center"><br/></div>
+                    <input id="foto-clear_id" name="foto-clear" type="checkbox" />
+                    <label for="foto-clear_id">Clear</label>
+                    <input id="id_foto" name="foto" type="file" />
+                </div>
+            </div>
+            <div class="col-md-1 sbros_col new_padding"></div>
+            <div class="col-md-3 sbros_col new_padding">
+                <div class="form-group">
+                    <label for="id_email">Email:</label>
+                    <input class="form-control" type="text"/>
+                </div>
+                <div class="form-group">
+                    <label for="id_jabber">Jabber:</label>
+                    <input class="form-control" type="text"/>
+                </div>
+                <div class="form-group">
+                    <label for="id_skype">Skype:</label>
+                    <input class="form-control" type="text"/>
+                </div>
+                <div class="form-group">
+                    <label for="id_other_contacts">Other contacts:</label>
+                    <textarea class="form-control" cols="23" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="id_bio">Bio:</label>
+                    <textarea class="form-control" cols="23" rows="3"></textarea>
+                </div>
+                <div id="loading_state" style="display:none;"><span>loading...</span></div>
+                {% if messages %}
+                    {% for message in messages %}
+                        <div id="form_submit_state">{{ message }}</div>
+                    {% endfor %}
+                {% else %}
+                     <div id="form_submit_state" style="display:none;">"Form submit successfully!"</div>
+                {% endif %}
+                <button id="id_submit_btn" type="submit" class="btn btn-primary">Submit</button>
+            </div>
+        </form>
+    </div>
+    <div class="row">
+        <div class="col-md-3 sbros_col new_padding">
+            <h3> <a href="{% url 'hello:requests_page' %}">Requests</a></h3>
+        </div>
+    </div>
+{% endblock %}
+{% block scripts %}
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="http://malsup.github.com/jquery.form.js"></script>
+{% endblock scripts %}

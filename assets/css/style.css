@@ -73,3 +73,10 @@ body {
     font-size: 160%;
 
 }
+
+#img_area, #person_img{
+    height: 200px;
+    width: 200px;
+    border: 2px;
+    border-color: #2caacf;
+}
