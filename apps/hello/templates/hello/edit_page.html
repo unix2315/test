@@ -12,42 +12,42 @@
                 </div>
                 <div class="form-group">
                     <label for="id_last_name">Last name:</label>
-                    <input class="form-control" type="text"/>
+                    <input class="form-control" id="id_last_name" type="text"/>
                 </div>
                 <div class="form-group">
                     <label for="id_date_of_birth">Date of birth:</label>
-                    <input class="form-control" type="text"/>
+                    <input class="form-control datepicker" id="id_date_of_birth" type="text"/>
                 </div>
                 <div class="form-group">
-                    <label for="id_foto">Photo:</label><br/>
+                    <label for="id_photo">Photo:</label><br/>
                     <!--Вручную определяем поле chckbox чтоб clear существующее фото из БД-->
                     <img id="person_img" src="{{ STATIC_URL }}img/no_photo.jpg" class="text-center"><br/>
-                    <input id="foto-clear_id" name="foto-clear" type="checkbox" />
-                    <label for="foto-clear_id">Clear</label>
-                    <input id="id_foto" name="foto" type="file" />
+                    <input id="photo-clear_id" name="photo-clear" type="checkbox" />
+                    <label for="photo-clear_id">Clear</label>
+                    <input id="id_photo" name="foto" type="file" />
                 </div>
             </div>
             <div class="col-md-1 sbros_col new_padding"></div>
             <div class="col-md-3 sbros_col new_padding">
                 <div class="form-group">
                     <label for="id_email">Email:</label>
-                    <input class="form-control" type="text"/>
+                    <input class="form-control" id="id_email" type="text"/>
                 </div>
                 <div class="form-group">
                     <label for="id_jabber">Jabber:</label>
-                    <input class="form-control" type="text"/>
+                    <input class="form-control" id="id_jabber" type="text"/>
                 </div>
                 <div class="form-group">
                     <label for="id_skype">Skype:</label>
-                    <input class="form-control" type="text"/>
+                    <input class="form-control" id="id_skype" type="text"/>
                 </div>
                 <div class="form-group">
                     <label for="id_other_contacts">Other contacts:</label>
-                    <textarea class="form-control" cols="23" rows="3"></textarea>
+                    <textarea class="form-control" id="id_other_contacts" cols="23" rows="3"></textarea>
                 </div>
                 <div class="form-group">
                     <label for="id_bio">Bio:</label>
-                    <textarea class="form-control" cols="23" rows="3"></textarea>
+                    <textarea class="form-control" id="id_bio" cols="23" rows="3"></textarea>
                 </div>
                 <div id="loading_state" style="display:none;"><span>loading...</span></div>
                 {% if messages %}
@@ -69,5 +69,7 @@
 {% endblock %}
 {% block scripts %}
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
     <script src="http://malsup.github.com/jquery.form.js"></script>
+    <script src='{% static "js/datepicker.js" %}'></script>
 {% endblock scripts %}
