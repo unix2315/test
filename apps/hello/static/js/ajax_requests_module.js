@@ -231,7 +231,7 @@ AJAXREQ = (function(){
             $(window).on('blur', function(){
                 localStorage['activeTab'] = false
             });
-             $(window).on('storage', )
+            $(window).on('storage', conlole.log('4dfdfdfdf'))
             $(window).on('storage', function(event){
                 if(event.key==='activeTab'){
                     that.stopGetAjaxReqPolling()
@@ -316,5 +316,25 @@ PAGEHEHEADUPDATE = (function(){
     };
 })();
 PAGEHEHEADUPDATE.coreRegister();
+
+TABSINTERACTIONS = (function(){
+    var openTabs,
+		tabName,
+        that;
+	
+    return{
+        coreRegister: function() {
+            CORE.registerModule(moduleName, this);
+        },
+        init: function(){
+            that = this;
+            //newStatus = 0;
+            CORE.registerEvents(moduleName,{
+            });
+			windoe.addEventListener('focus', )
+        }
+    };
+})();
+//TABSINTERACTIONS.coreRegister();
 
 CORE.startAllMod()
