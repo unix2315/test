@@ -102,8 +102,10 @@ REQTABLE = (function(){
                 that.initReqTableStatus()
             });
 			$reqTable = $('#requests_table');
-            $(window).on('focus', this.removeAllNewStatus);
-            $reqTable.on('mouseenter', this.removeAllNewStatus);
+            if (document.addEventListener) {
+		        document.addEventListener("focus", this.removeAllNewStatus, false);
+		        document.addEventListener("mousemove", this.removeAllNewStatus, false);
+	        }
             reqViewedStatus = false;
 			CORE.registerEvents(moduleName, {
                 'newAjaxRespPoll': this.addNewRequests
@@ -224,20 +226,7 @@ AJAXREQ = (function(){
         },
         init: function(){
             that = this;
-            $(window).on('focus', function(){
-                localStorage['activeTab'] = true;
-                that.startGetAjaxReqPolling()
-            });
-            $(window).on('blur', function(){
-                localStorage['activeTab'] = false
-            });
-            $(window).on('storage', conlole.log('4dfdfdfdf'))
-            $(window).on('storage', function(event){
-                if(event.key==='activeTab'){
-                    that.stopGetAjaxReqPolling()
-                }
-            });
-            this.startGetAjaxReqPolling();
+            this.startGetAjaxReqPolling()
         },
 		//Start ajax requests polling via seInterval function
         startGetAjaxReqPolling: function(){
@@ -318,23 +307,107 @@ PAGEHEHEADUPDATE = (function(){
 PAGEHEHEADUPDATE.coreRegister();
 
 TABSINTERACTIONS = (function(){
-    var openTabs,
-		tabName,
+    var moduleName,
+        openTabs,
+		tabId,
         that;
-	
+    moduleName = 'TABSINTERACTIONS';
+    /**
+     * Helper method to get unique ID for new tab
+     * @returns {string}
+     */
+    function getUniqueId(){
+        return '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    /**
+     * Modify openTabs obj, remove closet tab, and set one other as active
+     */
+    function removeTabId(){
+        var onlineTab;
+        openTabs = JSON.parse(localStorage['openTabs']);
+        delete openTabs[tabId];
+        for (var tab in openTabs) {
+            if (openTabs.hasOwnProperty(tab)) {
+                if(openTabs[tab]=='active') {
+                    onlineTab=undefined;
+                    break
+                } else {
+                    onlineTab = tab
+                }
+            }
+        }
+        if (onlineTab!=undefined) {
+            openTabs[onlineTab] = 'active'
+        }
+        localStorage.setItem('openTabs', JSON.stringify(openTabs));
+        console.log('UNLOAD')
+    }
+
+    /**
+     * Modify openTabs obj, add active tab and reset others
+     *
+     */
+    function handleWinFocus(){
+        console.log('FOCUS');
+        openTabs = JSON.parse(localStorage['openTabs']);
+        for(var tab in openTabs){
+            if (openTabs.hasOwnProperty(tab)) {
+                if(tab==tabId){
+                    openTabs[tab] = 'active';
+                }else{
+                    openTabs[tab] = 'offline';
+                }
+            }
+        }
+        localStorage.setItem('openTabs', JSON.stringify(openTabs));
+        console.log(openTabs[tabId]);
+    }
+    function handleChangeStor(ev){
+        console.log('STORAGE')
+        console.log(ev.key)
+    }
     return{
         coreRegister: function() {
             CORE.registerModule(moduleName, this);
         },
-        init: function(){
+        init: function() {
             that = this;
-            //newStatus = 0;
-            CORE.registerEvents(moduleName,{
+            tabId = getUniqueId();
+            $(function () {
+                if(localStorage['openTabs']){
+                    openTabs = JSON.parse(localStorage['openTabs']);
+                    for(var tab in openTabs) {
+                        if (openTabs.hasOwnProperty(tab)) {
+                            if (openTabs[tab]=='active') {
+                                openTabs[tabId] = 'offline';
+                                break
+                            }else openTabs[tabId] = 'active'
+                        }
+                    }
+                    if(!openTabs[tabId]){
+                        openTabs[tabId] = 'active'
+                    }
+                }else{
+                    openTabs = {};
+                    openTabs[tabId] = 'active'
+                }
+                localStorage.setItem('openTabs', JSON.stringify(openTabs))
             });
-			windoe.addEventListener('focus', )
+            window.addEventListener('focus', handleWinFocus);
+            window.addEventListener('mousemove', handleWinFocus);
+            window.addEventListener('blur', function(){
+                console.log('BLUR');
+                //openTabs = JSON.parse(localStorage['openTabs'])
+                //openTabs[tabId] = 'online';
+                //localStorage.setItem('openTabs', JSON.stringify(openTabs))
+            });
+            window.addEventListener('unload', removeTabId);
+            window.addEventListener('storage', handleChangeStor)
+            //$(window).on('storage', storF)
         }
     };
 })();
-//TABSINTERACTIONS.coreRegister();
+TABSINTERACTIONS.coreRegister();
 
 CORE.startAllMod()
