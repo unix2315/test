@@ -98,6 +98,7 @@ REQTABLE = (function(){
             $domReqTable = $('#no_requests_table')
         }
         $domReqTable.replaceWith($inserTable);
+
         return false
     }
     return{
@@ -118,11 +119,18 @@ REQTABLE = (function(){
 	        }
             reqViewedStatus = false;
 			CORE.registerEvents(moduleName, {
-                'newAjaxRespPoll': this.addNewRequests
+                'newAjaxRespPoll': this.addNewRequests,
+                'tabUpdateTable': this.tabUpdateReqTable
             });
             return false
         },
-		
+		tabUpdateReqTable: function(reqTableDomEl){
+            var $domReqTable;
+            console.log('QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ')
+            $domReqTable = $('#requests_table_content');
+            $domReqTable.replaceWith(reqTableDomEl);
+            return false
+        },
         initEditNewStatus: function(){
             var $trEls,
                 lastReqTime,
@@ -132,12 +140,12 @@ REQTABLE = (function(){
             $trEls = cloneDomTrEls();
             if($trEls.length) {
                 lastReqTime = $trEls[0].getElementsByTagName('td')[1].innerHTML;
-                sessionStorage["lastRequestTime"] = lastReqTime;
+                localStorage["lastRequestTime"] = lastReqTime;
                 lastViewedReq = localStorage['lastViewedReqTime'];
                 removeNewStatus($trEls, lastViewedReq);
                 insertNewReqTable($trEls);
             }else{
-                sessionStorage["lastRequestTime"] = ''
+                localStorage["lastRequestTime"] = ''
             }
             CORE.triggerEvent({
                 type: 'initCountNewStatus',
@@ -147,13 +155,24 @@ REQTABLE = (function(){
         //Facade public method removing all 'NEW' from DOM
         removeAllNewStatus: function(){
             var $trEls,
-                lastViewedReq;
+                lastViewedReq,
+                reqTableDomEl;
             $trEls = cloneDomTrEls();
             if($trEls.length&&reqViewedStatus==false){
-                lastViewedReq = sessionStorage["lastRequestTime"];
+                lastViewedReq = localStorage["lastRequestTime"];
                 localStorage['lastViewedReqTime'] = lastViewedReq;
                 removeNewStatus($trEls, lastViewedReq);
                 insertNewReqTable($trEls);
+                reqTableDomEl = document.getElementById('requests_table_content');
+                console.log(reqTableDomEl);
+                localStorage.setItem('tabUpdateTable', domJSON.toJSON(reqTableDomEl, {
+                        attributes: false,
+                        cull: false,
+                        domProperties: false,
+                        stringify: true,
+                        htmlOnly: true,
+                        metadata: false
+                    }));
                 CORE.triggerEvent({
                     type: 'removeAllNewStatus'
                 });
@@ -162,7 +181,8 @@ REQTABLE = (function(){
         },
 		//Facade ppublic method insrt new tr elements collections to DOM
         addNewRequests: function(data){
-            var $trEls;
+            var $trEls,
+                 reqTableDomEl;
             $trEls = cloneDomTrEls();
 			$reqTrEls = data.$reqTrEls;
             if($trEls.length){
@@ -174,6 +194,16 @@ REQTABLE = (function(){
                 updateTabNum(i, $trEls);
             }
             insertNewReqTable($trEls);
+            reqTableDomEl = document.getElementById('requests_table_content').cloneNode(true);
+            console.log(reqTableDomEl);
+            localStorage.setItem('tabUpdateTable', domJSON.toJSON(reqTableDomEl, {
+                attributes: false,
+                cull: false,
+                domProperties: false,
+                stringify: true,
+                htmlOnly: true,
+                metadata: false
+            }));
             reqViewedStatus = false;
         }
     };
@@ -246,7 +276,7 @@ AJAXREQ = (function(){
             if(ajaxReqPollingInterval==null){
                 ajaxReqPollingInterval = setInterval(function(){
 					var ajaxRequestData = {};
-					ajaxRequestData['last_request_time'] = sessionStorage["lastRequestTime"];
+					ajaxRequestData['last_request_time'] = localStorage["lastRequestTime"];
 					$.get('/requests/', ajaxRequestData).done(that.handleGetAjaxReqPoll)
 					//ajaxReqArr = getMockAjaxData();
 					//that.handleGetAjaxReqPoll(ajaxReqArr)
@@ -257,7 +287,7 @@ AJAXREQ = (function(){
         handleGetAjaxReqPoll: function(ajaxReqArr){
             var $reqTrEls;
             if(ajaxReqArr.length) {
-                sessionStorage["lastRequestTime"] = ajaxReqArr[0].request_time;
+                localStorage["lastRequestTime"] = ajaxReqArr[0].request_time;
 				$reqTrEls = getReqTrEls(ajaxReqArr);
 				CORE.triggerEvent({
                     type: 'newAjaxRespPoll',
@@ -299,20 +329,21 @@ PAGEHEHEADUPDATE = (function(){
             CORE.registerEvents(moduleName,{
                 'removeAllNewStatus': this.resetPageHeader,
 				'newAjaxRespPoll': this.ajaxUpdatePageHeader,
-				'initCountNewStatus': this.initNewStatus
+				'initCountNewStatus': this.initNewStatus,
+                'tabUpdateTitle': updatePageTitle
             });
         },
 		//Return init count of new requests
 		initNewStatus: function(data){
 			newStatus = data;
             updatePageTitle(newStatus);
-            //$('title').replaceWith('<title>('+newStatus+') new requests</title>')
+            //localStorage.setItem('tabUpdateTitle', newStatus)
 		},
 		//Reset page title after removing all 'NEW' status
         resetPageHeader: function(){
             newStatus = 0;
             updatePageTitle(newStatus);
-           //$('title').replaceWith('<title>('+newStatus+') new requests</title>')
+            localStorage.setItem('tabUpdateTitle', newStatus)
         },
 		//Update page title, by new requests 
         ajaxUpdatePageHeader: function(data){
@@ -321,7 +352,7 @@ PAGEHEHEADUPDATE = (function(){
                 newStatus = 10
             }
             updatePageTitle(newStatus);
-            //$('title').replaceWith('<title>('+newStatus+') new requests</title>')
+            localStorage.setItem('tabUpdateTitle', newStatus)
 		}
     };
 })();
@@ -388,19 +419,42 @@ TABSINTERACTIONS = (function(){
     /**
      * Start/stop ajax polling by update tab status via storage event
      */
-    function manageAjaxPolling(event){
+    function manageAjaxPolling(){
         var openTabs;
+        openTabs = JSON.parse(localStorage['openTabs']);
+        if(openTabs[tabId]=='active'){
+            CORE.triggerEvent({
+                type: 'startAjaxPolling'
+            });
+        }else if(openTabs[tabId]=='offline'){
+            CORE.triggerEvent({
+                type: 'stopAjaxPolling'
+            });
+        }
+    }
+
+    /**
+     * Routing storage event handler by event key
+     * @param event
+     */
+    function storageEventRouter(event){
+        var reqTableDomEl,
+            newStatus;
         if(event.key=='openTabs'){
-            openTabs = JSON.parse(localStorage['openTabs']);
-            if(openTabs[tabId]=='active'){
-                CORE.triggerEvent({
-                    type: 'startAjaxPolling'
-                });
-            }else if(openTabs[tabId]=='offline'){
-                CORE.triggerEvent({
-                    type: 'stopAjaxPolling'
-                });
-            }
+            manageAjaxPolling()
+        }else if(event.key=='tabUpdateTable'){
+            reqTableDomEl = domJSON.toDOM(localStorage['tabUpdateTable']);
+            conlsole.log('hhhhhhhhhhhhhhhhh:', reqTableDomEl)
+            CORE.triggerEvent({
+                type: 'tabUpdateTable',
+                data: reqTableDomEl
+            });
+        }else if(event.key=='tabUpdateTitle'){
+            newStatus = localStorage['tabUpdateTitle'];
+            CORE.triggerEvent({
+                type: 'tabUpdateTitle',
+                data: newStatus
+            });
         }
     }
     return{
@@ -434,7 +488,7 @@ TABSINTERACTIONS = (function(){
             window.addEventListener('focus', handleWinFocus);
             window.addEventListener('mousemove', handleWinFocus);
             window.addEventListener('unload', removeTabId);
-            window.addEventListener('storage', manageAjaxPolling)
+            window.addEventListener('storage', storageEventRouter)
         }
     };
 })();
