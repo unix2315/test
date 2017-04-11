@@ -226,6 +226,10 @@ AJAXREQ = (function(){
         },
         init: function(){
             that = this;
+            CORE.registerEvents(moduleName,{
+                'startAjaxPolling': this.startGetAjaxReqPolling,
+                'stopAjaxPolling': this.stopGetAjaxReqPolling
+            });
             this.startGetAjaxReqPolling()
         },
 		//Start ajax requests polling via seInterval function
@@ -308,7 +312,6 @@ PAGEHEHEADUPDATE.coreRegister();
 
 TABSINTERACTIONS = (function(){
     var moduleName,
-        openTabs,
 		tabId,
         that;
     moduleName = 'TABSINTERACTIONS';
@@ -319,12 +322,12 @@ TABSINTERACTIONS = (function(){
     function getUniqueId(){
         return '_' + Math.random().toString(36).substr(2, 9);
     }
-
     /**
-     * Modify openTabs obj, remove closet tab, and set one other as active
+     * Modify openTabs obj, remove closed tab, and set one other as active
      */
     function removeTabId(){
-        var onlineTab;
+        var openTabs,
+            onlineTab;
         openTabs = JSON.parse(localStorage['openTabs']);
         delete openTabs[tabId];
         for (var tab in openTabs) {
@@ -341,37 +344,54 @@ TABSINTERACTIONS = (function(){
             openTabs[onlineTab] = 'active'
         }
         localStorage.setItem('openTabs', JSON.stringify(openTabs));
-        console.log('UNLOAD')
     }
-
     /**
      * Modify openTabs obj, add active tab and reset others
-     *
+     * Trigger startPolling event if tab is active
      */
     function handleWinFocus(){
-        console.log('FOCUS');
+        var openTabs;
+        CORE.triggerEvent({
+            type: 'startAjaxPolling'
+        });
         openTabs = JSON.parse(localStorage['openTabs']);
-        for(var tab in openTabs){
-            if (openTabs.hasOwnProperty(tab)) {
-                if(tab==tabId){
-                    openTabs[tab] = 'active';
-                }else{
-                    openTabs[tab] = 'offline';
+        if(openTabs[tabId]!='active'){
+            for(var tab in openTabs){
+                if (openTabs.hasOwnProperty(tab)) {
+                    if(tab==tabId){
+                        openTabs[tab] = 'active';
+                    }else{
+                        openTabs[tab] = 'offline';
+                    }
                 }
             }
         }
         localStorage.setItem('openTabs', JSON.stringify(openTabs));
-        console.log(openTabs[tabId]);
     }
-    function handleChangeStor(ev){
-        console.log('STORAGE')
-        console.log(ev.key)
+    /**
+     * Start/stop ajax polling by update tab status via storage event
+     */
+    function manageAjaxPolling(event){
+        var openTabs;
+        if(event.key=='openTabs'){
+            openTabs = JSON.parse(localStorage['openTabs']);
+            if(openTabs[tabId]=='active'){
+                CORE.triggerEvent({
+                    type: 'startAjaxPolling'
+                });
+            }else if(openTabs[tabId]=='offline'){
+                CORE.triggerEvent({
+                    type: 'stopAjaxPolling'
+                });
+            }
+        }
     }
     return{
         coreRegister: function() {
             CORE.registerModule(moduleName, this);
         },
         init: function() {
+            var openTabs;
             that = this;
             tabId = getUniqueId();
             $(function () {
@@ -396,15 +416,8 @@ TABSINTERACTIONS = (function(){
             });
             window.addEventListener('focus', handleWinFocus);
             window.addEventListener('mousemove', handleWinFocus);
-            window.addEventListener('blur', function(){
-                console.log('BLUR');
-                //openTabs = JSON.parse(localStorage['openTabs'])
-                //openTabs[tabId] = 'online';
-                //localStorage.setItem('openTabs', JSON.stringify(openTabs))
-            });
             window.addEventListener('unload', removeTabId);
-            window.addEventListener('storage', handleChangeStor)
-            //$(window).on('storage', storF)
+            window.addEventListener('storage', manageAjaxPolling)
         }
     };
 })();
