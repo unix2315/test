@@ -39,6 +39,7 @@ CORE = (function(){
 REQTABLE = (function(){
     var moduleName = 'REQTABLE',
         that,
+        newCount,
         reqViewedStatus; //Status - all new requests is viewed
     //Private help method, cloning tr elements from table in DOM
     function cloneDomTrEls(){
@@ -61,11 +62,20 @@ REQTABLE = (function(){
         return $trEls
     }
     //Private help method, removing 'NEW' from td elements
-    function removeNewStatus(i, $trEls){
-        var newTdEl;
-        newTdEl = $trEls[i].getElementsByTagName('td')[5];
-        if(newTdEl){
-			newTdEl.innerHTML = ''
+    function removeNewStatus($trEls, lastViewedReq) {
+        var timeTdEl,
+            newTdEl;
+        for (var i = 0, max = $trEls.length; i < max; i++) {
+            timeTdEl = $trEls[i].getElementsByTagName('td')[1].innerHTML;
+            newTdEl = $trEls[i].getElementsByTagName('td')[5];
+            //check if newTdEl is present in DOM ReqTable
+            if (newTdEl) {
+                if (timeTdEl <= lastViewedReq) {
+                    newTdEl.innerHTML = ''
+                } else {
+                    newCount += 1;
+                }
+            }
         }
         return false
     }
@@ -99,7 +109,7 @@ REQTABLE = (function(){
 			var $reqTable;
             that = this;
             $(function(){
-                that.initReqTableStatus()
+                that.initEditNewStatus()
             });
 			$reqTable = $('#requests_table');
             if (document.addEventListener) {
@@ -113,22 +123,19 @@ REQTABLE = (function(){
             return false
         },
 		
-        initReqTableStatus: function(){
+        initEditNewStatus: function(){
             var $trEls,
                 lastReqTime,
 				newTdEl,
-				newCount;
+                lastViewedReq;
             newCount = 0;
             $trEls = cloneDomTrEls();
             if($trEls.length) {
                 lastReqTime = $trEls[0].getElementsByTagName('td')[1].innerHTML;
                 sessionStorage["lastRequestTime"] = lastReqTime;
-                for (var i = 0, max = $trEls.length; i < max; i++) {
-                    newTdEl = $trEls[i].getElementsByTagName('td')[5];
-                    if (newTdEl.innerHTML == 'NEW') {
-                        newCount += 1
-                    }
-                }
+                lastViewedReq = localStorage['lastViewedReqTime'];
+                removeNewStatus($trEls, lastViewedReq);
+                insertNewReqTable($trEls);
             }else{
                 sessionStorage["lastRequestTime"] = ''
             }
@@ -139,12 +146,13 @@ REQTABLE = (function(){
         },
         //Facade public method removing all 'NEW' from DOM
         removeAllNewStatus: function(){
-            var $trEls;
+            var $trEls,
+                lastViewedReq;
             $trEls = cloneDomTrEls();
             if($trEls.length&&reqViewedStatus==false){
-                for(var i= 0, max = $trEls.length; i < max; i++){
-                    removeNewStatus(i, $trEls)
-                }
+                lastViewedReq = sessionStorage["lastRequestTime"];
+                localStorage['lastViewedReqTime'] = lastViewedReq;
+                removeNewStatus($trEls, lastViewedReq);
                 insertNewReqTable($trEls);
                 CORE.triggerEvent({
                     type: 'removeAllNewStatus'
@@ -275,6 +283,12 @@ PAGEHEHEADUPDATE = (function(){
     var moduleName = 'PAGEHEHEADUPDATE',
 		newStatus, //'NEW' counter for page header
         that;
+    function updatePageTitle(newStatus){
+        if(newStatus==0){
+            newStatus=''
+        }else newStatus='('+newStatus+') ';
+        $('title').replaceWith('<title>'+newStatus+'new requests</title>')
+    }
     return{
         coreRegister: function() {
             CORE.registerModule(moduleName, this);
@@ -291,12 +305,14 @@ PAGEHEHEADUPDATE = (function(){
 		//Return init count of new requests
 		initNewStatus: function(data){
 			newStatus = data;
-            $('title').replaceWith('<title>('+newStatus+') new requests</title>')
+            updatePageTitle(newStatus);
+            //$('title').replaceWith('<title>('+newStatus+') new requests</title>')
 		},
 		//Reset page title after removing all 'NEW' status
         resetPageHeader: function(){
-           newStatus = 0;
-           $('title').replaceWith('<title>('+newStatus+') new requests</title>')
+            newStatus = 0;
+            updatePageTitle(newStatus);
+           //$('title').replaceWith('<title>('+newStatus+') new requests</title>')
         },
 		//Update page title, by new requests 
         ajaxUpdatePageHeader: function(data){
@@ -304,7 +320,8 @@ PAGEHEHEADUPDATE = (function(){
             if(newStatus > 10){
                 newStatus = 10
             }
-            $('title').replaceWith('<title>('+newStatus+') new requests</title>')
+            updatePageTitle(newStatus);
+            //$('title').replaceWith('<title>('+newStatus+') new requests</title>')
 		}
     };
 })();
