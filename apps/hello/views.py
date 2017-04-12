@@ -38,3 +38,7 @@ def requests_view(request):
     last_requests = requests[:10]
     context = {'requests': last_requests}
     return render(request, 'hello/requests_page.html', context)
+
+
+def edit_view(request):
+    return render(request, 'hello/edit_page.html')

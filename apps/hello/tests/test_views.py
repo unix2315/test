@@ -2,7 +2,7 @@
 from django.test import TestCase
 from django.test import Client
 from django.test import RequestFactory
-from apps.hello.views import home_view, requests_view
+from apps.hello.views import home_view, requests_view, edit_view
 from datetime import date
 from apps.hello.models import Person, RequestsLog
 import json
@@ -153,12 +153,12 @@ class RequestsViewTest(TestCase):
         ajax_response = json.loads(test_response.content)
         self.assertEqual(len(ajax_response), 2)
 
-        
+
 class EditPageViewTest(TestCase):
 
     def setUp(self):
         self.client = Client()
-        
+
     def test_request_to_edit_page_return_correct_status_code(self):
         """Check, if request to edit_page return status code 200"""
         test_response = self.client.get('/edit/')
