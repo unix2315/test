@@ -7,6 +7,7 @@ from datetime import date
 from apps.hello.models import Person, RequestsLog
 import json
 from django.core.urlresolvers import reverse
+import time
 
 
 PERSON_DATA = {
@@ -141,6 +142,7 @@ class RequestsViewTest(TestCase):
         """
         for i in range(20):
             RequestsLog(**REQUEST_DATA).save()
+            time.sleep(0.01)
         last_requests = RequestsLog.objects.all()
         third_last_request = last_requests[2].request_time
         test_response = self.client.get(
