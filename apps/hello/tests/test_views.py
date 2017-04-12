@@ -7,6 +7,7 @@ from datetime import date
 from apps.hello.models import Person, RequestsLog
 import json
 from django.core.urlresolvers import reverse
+import time
 
 
 PERSON_DATA = {
@@ -141,6 +142,7 @@ class RequestsViewTest(TestCase):
         """
         for i in range(20):
             RequestsLog(**REQUEST_DATA).save()
+            time.sleep(0.01)
         last_requests = RequestsLog.objects.all()
         third_last_request = last_requests[2].request_time
         test_response = self.client.get(
@@ -150,3 +152,25 @@ class RequestsViewTest(TestCase):
         )
         ajax_response = json.loads(test_response.content)
         self.assertEqual(len(ajax_response), 2)
+
+        
+class EditPageViewTest(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        
+    def test_request_to_edit_page_return_correct_status_code(self):
+        """Check, if request to edit_page return status code 200"""
+        test_response = self.client.get('/edit/')
+        self.assertEqual(test_response.status_code, 200)
+
+    def test_request_to_edit_page_uses_proper_template(self):
+        """Check, if edit_page view render right template"""
+        test_response = self.client.get('/edit/')
+        self.assertTemplateUsed(test_response, 'hello/edit_page.html')
+
+    def test_edit_view_return_correct_status_code(self):
+        """Check, if edit_view return status code 200"""
+        test_request = RequestFactory().get(reverse('hello:edit_page'))
+        test_response = edit_view(test_request)
+        self.assertEqual(test_response.status_code, 200)
