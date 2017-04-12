@@ -39,7 +39,8 @@ CORE = (function(){
 REQTABLE = (function(){
     var moduleName = 'REQTABLE',
         that,
-        reqViewedStatus; //Status - all new requests is viewed
+        newCount,
+        reqViewedStatus;  //flag - all new requests are viewed
     //Private help method, cloning tr elements from table in DOM
     function cloneDomTrEls(){
         var $tbodyContent,
@@ -61,11 +62,20 @@ REQTABLE = (function(){
         return $trEls
     }
     //Private help method, removing 'NEW' from td elements
-    function removeNewStatus(i, $trEls){
-        var newTdEl;
-        newTdEl = $trEls[i].getElementsByTagName('td')[5];
-        if(newTdEl){
-			newTdEl.innerHTML = ''
+    function removeNewStatus($trEls, lastViewedReq) {
+        var timeTdEl,
+            newTdEl;
+        for (var i = 0, max = $trEls.length; i < max; i++) {
+            timeTdEl = $trEls[i].getElementsByTagName('td')[1].innerHTML;
+            newTdEl = $trEls[i].getElementsByTagName('td')[5];
+            //check if newTdEl is present in DOM ReqTable
+            if (newTdEl) {
+                if (timeTdEl <= lastViewedReq) {
+                    newTdEl.innerHTML = ''
+                } else {
+                    newCount += 1;
+                }
+            }
         }
         return false
     }
@@ -88,6 +98,7 @@ REQTABLE = (function(){
             $domReqTable = $('#no_requests_table')
         }
         $domReqTable.replaceWith($inserTable);
+
         return false
     }
     return{
@@ -99,35 +110,49 @@ REQTABLE = (function(){
 			var $reqTable;
             that = this;
             $(function(){
-                that.initReqTableStatus()
+                that.initEditNewStatus()
             });
 			$reqTable = $('#requests_table');
-            $reqTable.on('mouseenter', this.removeAllNewStatus);
+            if (document.addEventListener) {
+		        document.addEventListener("focus", this.removeAllNewStatus, false);
+		        document.addEventListener("mousemove", this.removeAllNewStatus, false);
+	        }
             reqViewedStatus = false;
 			CORE.registerEvents(moduleName, {
-                'newAjaxRespPoll': this.addNewRequests
+                'newAjaxRespPoll': this.addNewRequests,
+                'tabUpdateTable': this.tabUpdateReqTable
             });
             return false
         },
-		
-        initReqTableStatus: function(){
+		/**
+		* Insert new table content via addNewRequests/removeAllNewStatus events
+		* in active tab
+		*/
+		tabUpdateReqTable: function(reqTableDomEl){
+            var $domReqTable;
+            $domReqTable = $('#requests_table_content');
+            $domReqTable.replaceWith(reqTableDomEl);
+			reqViewedStatus = false;
+            return false
+        },
+		/**
+		* Init remove 'NEW' status at requests which are already viewed
+		*/
+        initEditNewStatus: function(){
             var $trEls,
                 lastReqTime,
 				newTdEl,
-				newCount;
+                lastViewedReq;
             newCount = 0;
             $trEls = cloneDomTrEls();
             if($trEls.length) {
                 lastReqTime = $trEls[0].getElementsByTagName('td')[1].innerHTML;
-                sessionStorage["lastRequestTime"] = lastReqTime;
-                for (var i = 0, max = $trEls.length; i < max; i++) {
-                    newTdEl = $trEls[i].getElementsByTagName('td')[5];
-                    if (newTdEl.innerHTML == 'NEW') {
-                        newCount += 1
-                    }
-                }
+                localStorage["lastRequestTime"] = lastReqTime;
+                lastViewedReq = localStorage['lastViewedReqTime'];
+                removeNewStatus($trEls, lastViewedReq);
+                insertNewReqTable($trEls);
             }else{
-                sessionStorage["lastRequestTime"] = ''
+                localStorage["lastRequestTime"] = ''
             }
             CORE.triggerEvent({
                 type: 'initCountNewStatus',
@@ -136,13 +161,18 @@ REQTABLE = (function(){
         },
         //Facade public method removing all 'NEW' from DOM
         removeAllNewStatus: function(){
-            var $trEls;
+            var $trEls,
+                lastViewedReq,
+                reqTableDomEl;
             $trEls = cloneDomTrEls();
             if($trEls.length&&reqViewedStatus==false){
-                for(var i= 0, max = $trEls.length; i < max; i++){
-                    removeNewStatus(i, $trEls)
-                }
+                lastViewedReq = localStorage["lastRequestTime"];
+                localStorage['lastViewedReqTime'] = lastViewedReq;
+                removeNewStatus($trEls, lastViewedReq);
                 insertNewReqTable($trEls);
+				// Update localStorege to send DOM changes to offline tabs 
+                reqTableDomEl = document.getElementById('requests_table_content').outerHTML;
+				localStorage.setItem('tabUpdateTable', reqTableDomEl);
                 CORE.triggerEvent({
                     type: 'removeAllNewStatus'
                 });
@@ -151,7 +181,8 @@ REQTABLE = (function(){
         },
 		//Facade ppublic method insrt new tr elements collections to DOM
         addNewRequests: function(data){
-            var $trEls;
+            var $trEls,
+                 reqTableDomEl;
             $trEls = cloneDomTrEls();
 			$reqTrEls = data.$reqTrEls;
             if($trEls.length){
@@ -163,6 +194,9 @@ REQTABLE = (function(){
                 updateTabNum(i, $trEls);
             }
             insertNewReqTable($trEls);
+			// Update localStorege to send DOM changes to offline tabs
+            reqTableDomEl = document.getElementById('requests_table_content').outerHTML;
+			localStorage.setItem('tabUpdateTable', reqTableDomEl)
             reqViewedStatus = false;
         }
     };
@@ -187,7 +221,6 @@ AJAXREQ = (function(){
 			request_time: "2017-04-05T07:33:37",
 			status_code: 200
 		};
-		
 		objNum = Math.floor(Math.random() * (4));
 		for(var i= 0; i < objNum; i++){
 			ajaxReqArr.push(reqObj)
@@ -223,7 +256,11 @@ AJAXREQ = (function(){
         },
         init: function(){
             that = this;
-            this.startGetAjaxReqPolling();
+            CORE.registerEvents(moduleName,{
+                'startAjaxPolling': this.startGetAjaxReqPolling,
+                'stopAjaxPolling': this.stopGetAjaxReqPolling
+            });
+            this.startGetAjaxReqPolling()
         },
 		//Start ajax requests polling via seInterval function
         startGetAjaxReqPolling: function(){
@@ -231,7 +268,7 @@ AJAXREQ = (function(){
             if(ajaxReqPollingInterval==null){
                 ajaxReqPollingInterval = setInterval(function(){
 					var ajaxRequestData = {};
-					ajaxRequestData['last_request_time'] = sessionStorage["lastRequestTime"];
+					ajaxRequestData['last_request_time'] = localStorage["lastRequestTime"];
 					$.get('/requests/', ajaxRequestData).done(that.handleGetAjaxReqPoll)
 					//ajaxReqArr = getMockAjaxData();
 					//that.handleGetAjaxReqPoll(ajaxReqArr)
@@ -242,7 +279,7 @@ AJAXREQ = (function(){
         handleGetAjaxReqPoll: function(ajaxReqArr){
             var $reqTrEls;
             if(ajaxReqArr.length) {
-                sessionStorage["lastRequestTime"] = ajaxReqArr[0].request_time;
+                localStorage["lastRequestTime"] = ajaxReqArr[0].request_time;
 				$reqTrEls = getReqTrEls(ajaxReqArr);
 				CORE.triggerEvent({
                     type: 'newAjaxRespPoll',
@@ -268,6 +305,15 @@ PAGEHEHEADUPDATE = (function(){
     var moduleName = 'PAGEHEHEADUPDATE',
 		newStatus, //'NEW' counter for page header
         that;
+	/**
+	* Change page title by update newStatus
+	*/
+    function updatePageTitle(newStatus){
+        if(newStatus==0){
+            newStatus=''
+        }else newStatus='('+newStatus+') ';
+        $('title').replaceWith('<title>'+newStatus+'new requests</title>')
+    }
     return{
         coreRegister: function() {
             CORE.registerModule(moduleName, this);
@@ -278,18 +324,21 @@ PAGEHEHEADUPDATE = (function(){
             CORE.registerEvents(moduleName,{
                 'removeAllNewStatus': this.resetPageHeader,
 				'newAjaxRespPoll': this.ajaxUpdatePageHeader,
-				'initCountNewStatus': this.initNewStatus
+				'initCountNewStatus': this.initNewStatus,
+                'tabUpdateTitle': updatePageTitle
             });
         },
 		//Return init count of new requests
 		initNewStatus: function(data){
 			newStatus = data;
-            $('title').replaceWith('<title>('+newStatus+') new requests</title>')
+            updatePageTitle(newStatus);
+            //localStorage.setItem('tabUpdateTitle', newStatus)
 		},
 		//Reset page title after removing all 'NEW' status
         resetPageHeader: function(){
-           newStatus = 0;
-           $('title').replaceWith('<title>('+newStatus+') new requests</title>')
+            newStatus = 0;
+            updatePageTitle(newStatus);
+            localStorage.setItem('tabUpdateTitle', newStatus)
         },
 		//Update page title, by new requests 
         ajaxUpdatePageHeader: function(data){
@@ -297,10 +346,146 @@ PAGEHEHEADUPDATE = (function(){
             if(newStatus > 10){
                 newStatus = 10
             }
-            $('title').replaceWith('<title>('+newStatus+') new requests</title>')
+            updatePageTitle(newStatus);
+            localStorage.setItem('tabUpdateTitle', newStatus)
 		}
     };
 })();
 PAGEHEHEADUPDATE.coreRegister();
+
+TABSINTERACTIONS = (function(){
+    var moduleName,
+		tabId,
+        that;
+    moduleName = 'TABSINTERACTIONS';
+    /**
+     * Helper method to get unique ID for new tab
+     * @returns {string}
+     */
+    function getUniqueId(){
+        return '_' + Math.random().toString(36).substr(2, 9);
+    }
+    /**
+     * Modify openTabs obj, remove closed tabs, and set one as active
+     */
+    function removeTabId(){
+        var openTabs,
+            onlineTab;
+        openTabs = JSON.parse(localStorage['openTabs']);
+        delete openTabs[tabId];
+        for (var tab in openTabs) {
+            if (openTabs.hasOwnProperty(tab)) {
+                if(openTabs[tab]=='active') {
+                    onlineTab=undefined;
+                    break
+                } else {
+                    onlineTab = tab
+                }
+            }
+        }
+        if (onlineTab!=undefined) {
+            openTabs[onlineTab] = 'active'
+        }
+        localStorage.setItem('openTabs', JSON.stringify(openTabs));
+    }
+    /**
+     * Modify openTabs obj, add active tab and reset others
+     * Trigger startPolling event if tab is active
+     */
+    function handleWinFocus(){
+        var openTabs;
+        CORE.triggerEvent({
+            type: 'startAjaxPolling'
+        });
+        openTabs = JSON.parse(localStorage['openTabs']);
+        if(openTabs[tabId]!='active'){
+            for(var tab in openTabs){
+                if (openTabs.hasOwnProperty(tab)) {
+                    if(tab==tabId){
+                        openTabs[tab] = 'active';
+                    }else{
+                        openTabs[tab] = 'offline';
+                    }
+                }
+            }
+        }
+        localStorage.setItem('openTabs', JSON.stringify(openTabs));
+    }
+    /**
+     * Start/stop ajax polling by update tab status via storage event
+     */
+    function manageAjaxPolling(){
+        var openTabs;
+        openTabs = JSON.parse(localStorage['openTabs']);
+        if(openTabs[tabId]=='active'){
+            CORE.triggerEvent({
+                type: 'startAjaxPolling'
+            });
+        }else if(openTabs[tabId]=='offline'){
+            CORE.triggerEvent({
+                type: 'stopAjaxPolling'
+            });
+        }
+    }
+
+    /**
+     * Routing storage event handler by event key
+     * @param event
+     */
+    function storageEventRouter(event){
+        var reqTableDomEl,
+            newStatus;
+        if(event.key=='openTabs'){
+            manageAjaxPolling()
+        }else if(event.key=='tabUpdateTable'){
+            reqTableDomEl = localStorage['tabUpdateTable'];
+            CORE.triggerEvent({
+                type: 'tabUpdateTable',
+                data: reqTableDomEl
+            });
+        }else if(event.key=='tabUpdateTitle'){
+            newStatus = localStorage['tabUpdateTitle'];
+            CORE.triggerEvent({
+                type: 'tabUpdateTitle',
+                data: newStatus
+            });
+        }
+    }
+    return{
+        coreRegister: function() {
+            CORE.registerModule(moduleName, this);
+        },
+        init: function() {
+            var openTabs;
+            that = this;
+            tabId = getUniqueId();
+            $(function () {
+                if(localStorage['openTabs']){
+                    openTabs = JSON.parse(localStorage['openTabs']);
+                    for(var tab in openTabs) {
+                        if (openTabs.hasOwnProperty(tab)) {
+                            if (openTabs[tab]=='active') {
+                                openTabs[tabId] = 'offline';
+                                break
+                            }else openTabs[tabId] = 'active'
+                        }
+                    }
+                    if(!openTabs[tabId]){
+                        openTabs[tabId] = 'active'
+                    }
+                }else{
+                    openTabs = {};
+                    openTabs[tabId] = 'active'
+                }
+                localStorage.setItem('openTabs', JSON.stringify(openTabs))
+            });
+            window.addEventListener('focus', handleWinFocus);
+            window.addEventListener('mousemove', handleWinFocus);
+            window.addEventListener('unload', removeTabId);
+            window.addEventListener('storage', storageEventRouter)
+        }
+    };
+})();
+TABSINTERACTIONS.coreRegister();
 
 CORE.startAllMod()
