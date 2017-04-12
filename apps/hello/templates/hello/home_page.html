@@ -2,13 +2,13 @@
 {% block content %}
 {% if person %}
     <div class="row">
-        <div class="col-md-1 sbros_col new_padding"></div>
-        <div class="col-md-4 sbros_col new_padding">
+        <div class="col-md-1"></div>
+        <div class="col-md-4">
             <div><h4>Name: {{ person.name }}</h4></div>
             <div><h4>Last name: {{ person.last_name }}</h4></div>
             <div><h4>Date of birth: {{ person.date_of_birth }}</h4></div>
         </div>
-        <div class="col-md-4 sbros_col new_padding">
+        <div class="col-md-4">
             <div><h4>Contacts:</h4></div>
             <div><h4>Email: {{ person.email }}</h4></div>
             <div><h4>Jabber: {{ person.jabber }}</h4></div>
@@ -19,14 +19,14 @@
     </div>
 {% else %}
     <div class="row">
-        <div class="col-md-1 sbros_col new_padding"></div>
-        <div class="col-md-6 sbros_col new_padding">
+        <div class="col-md-1"></div>
+        <div class="col-md-6">
             <div><h2>No person was found</h2></div><br><br>
         </div>
     </div>
 {% endif %}
     <div class="row">
-        <div class="col-md-3 sbros_col new_padding">
+        <div class="col-md-3">
             <h3><a href="{% url 'hello:requests_page' %}">Requests</a></h3>
         </div>
     </div>
