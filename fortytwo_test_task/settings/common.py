@@ -14,6 +14,7 @@ import sys
 
 PROJECT_DIR = os.path.dirname(os.path.dirname(__file__))
 BASE_DIR = os.path.dirname(PROJECT_DIR)
+OUTER_DIR = os.path.dirname(BASE_DIR)
 
 # App/Library Paths
 sys.path.append(os.path.join(BASE_DIR, 'apps'))
@@ -88,8 +89,8 @@ USE_TZ = True
 # Upload Media
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, '..', 'uploads')
-MEDIA_TEST_ROOT = os.path.join(BASE_DIR, '..', 'uploads/test/')
+MEDIA_ROOT = os.path.join(OUTER_DIR, 'uploads')
+MEDIA_TEST_ROOT = os.path.join(OUTER_DIR, 'uploads/test/')
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.

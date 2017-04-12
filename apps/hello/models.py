@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 from django.db import models
+from PIL import Image
+from apps.hello.utils import user_directory_path
 
 
 class Person(models.Model):
@@ -8,6 +10,11 @@ class Person(models.Model):
     last_name = models.CharField(max_length=30)
     date_of_birth = models.DateField(null=True)
     bio = models.TextField(blank=True)
+    photo = models.ImageField(
+        upload_to=user_directory_path,
+        blank=True,
+        null=True
+    )
     email = models.EmailField(blank=True)
     skype = models.CharField(max_length=30, blank=True)
     jabber = models.EmailField(blank=True)

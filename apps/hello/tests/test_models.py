@@ -25,7 +25,7 @@ class PersonModelTest(TestCase):
                 content=test_img.read(),
                 content_type='image/png'
             )
-        self.test_person.foto = self.test_image_1
+        self.test_person.photo = self.test_image_1
         self.test_person.save()
         self.first_photo_file = self.test_person.photo.path
 
@@ -43,8 +43,8 @@ class PersonModelTest(TestCase):
             settings.MEDIA_TEST_ROOT + self.test_person.photo.name
         )
         self.assertTrue(
-            self.test_person.foto.width <= 200 and
-            self.test_person.foto.height <= 200
+            self.test_person.photo.width <= 200 and
+            self.test_person.photo.height <= 200
         )
 
     def test_save_method_remove_unused_img(self):
@@ -55,7 +55,7 @@ class PersonModelTest(TestCase):
                 content=test_img.read(),
                 content_type='image/png'
         )
-        self.test_person.foto = self.test_image_2
+        self.test_person.photo = self.test_image_2
         self.test_person.save()
         self.second_photo_file = self.test_person.photo.path
         self.assertTrue(os.path.exists(self.second_photo_file))
