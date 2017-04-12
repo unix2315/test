@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from apps.hello.models import Person, RequestsLog
 import json
 from django.utils.dateparse import parse_datetime
+from apps.hello.forms import EditForm
 
 
 def home_view(request):
@@ -41,4 +42,8 @@ def requests_view(request):
 
 
 def edit_view(request):
-    return render(request, 'hello/edit_page.html')
+    person = Person.objects.first()
+    edit_form = EditForm(instance=person)
+    context = dict()
+    context['form'] = edit_form
+    return render(request, 'hello/edit_page.html', context)

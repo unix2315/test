@@ -5,6 +5,7 @@ from django.test import RequestFactory
 from apps.hello.views import home_view, requests_view, edit_view
 from datetime import date
 from apps.hello.models import Person, RequestsLog
+from apps.hello.forms import EditForm
 import json
 from django.core.urlresolvers import reverse
 import time
@@ -174,7 +175,7 @@ class EditPageViewTest(TestCase):
         test_request = RequestFactory().get(reverse('hello:edit_page'))
         test_response = edit_view(test_request)
         self.assertEqual(test_response.status_code, 200)
-        
+
     def test_edit_page_uses_EditForm(self):
         """Check, if edit_view is return EditForm instance"""
         test_response = self.client.get(reverse('hello:edit_page'))
@@ -184,14 +185,25 @@ class EditPageViewTest(TestCase):
         """Check, if proper html of EditForm contains in edit_page"""
         test_response = self.client.get(reverse('hello:edit_page'))
         self.assertContains(test_response, 'form-control', count=8)
-        self.assertContains(test_response, 'for="id_name"' and 'id="id_name"')
-        self.assertContains(test_response, 'for="name"' and 'id="id_last_name"')
+        self.assertContains(
+            test_response,
+            'for="id_name"' and 'id="id_name"'
+        )
+        self.assertContains(
+            test_response,
+            'for="name"' and 'id="id_last_name"'
+        )
 
     def test_edit_page_form_contain_bound_model_instance_data(self):
-        """Check if edit_view is bound existing
+        """Check, if edit_view is bound existing
         Person model instance data to EditForm"""
-        person = Person(**PERSON_DATA)
-        person.save()
+        person = Person.objects.first()
         test_response = self.client.get(reverse('hello:edit_page'))
-        self.assertIn(person.name, str(test_response.context['form']['name']))
-        self.assertIn(person.last_name, str(test_response.context['form']['last_name']))
+        self.assertIn(
+            person.name,
+            str(test_response.context['form']['name'])
+        )
+        self.assertIn(
+            person.last_name,
+            str(test_response.context['form']['last_name'])
+        )
