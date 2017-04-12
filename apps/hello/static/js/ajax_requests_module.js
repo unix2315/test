@@ -40,7 +40,7 @@ REQTABLE = (function(){
     var moduleName = 'REQTABLE',
         that,
         newCount,
-        reqViewedStatus; //Status - all new requests is viewed
+        reqViewedStatus;  //flag - all new requests are viewed
     //Private help method, cloning tr elements from table in DOM
     function cloneDomTrEls(){
         var $tbodyContent,
@@ -124,13 +124,20 @@ REQTABLE = (function(){
             });
             return false
         },
+		/**
+		* Insert new table content via addNewRequests/removeAllNewStatus events
+		* in active tab
+		*/
 		tabUpdateReqTable: function(reqTableDomEl){
             var $domReqTable;
-            console.log('QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ')
             $domReqTable = $('#requests_table_content');
             $domReqTable.replaceWith(reqTableDomEl);
+			reqViewedStatus = false;
             return false
         },
+		/**
+		* Init remove 'NEW' status at requests which are already viewed
+		*/
         initEditNewStatus: function(){
             var $trEls,
                 lastReqTime,
@@ -163,16 +170,9 @@ REQTABLE = (function(){
                 localStorage['lastViewedReqTime'] = lastViewedReq;
                 removeNewStatus($trEls, lastViewedReq);
                 insertNewReqTable($trEls);
-                reqTableDomEl = document.getElementById('requests_table_content');
-                console.log(reqTableDomEl);
-                localStorage.setItem('tabUpdateTable', domJSON.toJSON(reqTableDomEl, {
-                        attributes: false,
-                        cull: false,
-                        domProperties: false,
-                        stringify: true,
-                        htmlOnly: true,
-                        metadata: false
-                    }));
+				// Update localStorege to send DOM changes to offline tabs 
+                reqTableDomEl = document.getElementById('requests_table_content').outerHTML;
+				localStorage.setItem('tabUpdateTable', reqTableDomEl);
                 CORE.triggerEvent({
                     type: 'removeAllNewStatus'
                 });
@@ -194,16 +194,9 @@ REQTABLE = (function(){
                 updateTabNum(i, $trEls);
             }
             insertNewReqTable($trEls);
-            reqTableDomEl = document.getElementById('requests_table_content').cloneNode(true);
-            console.log(reqTableDomEl);
-            localStorage.setItem('tabUpdateTable', domJSON.toJSON(reqTableDomEl, {
-                attributes: false,
-                cull: false,
-                domProperties: false,
-                stringify: true,
-                htmlOnly: true,
-                metadata: false
-            }));
+			// Update localStorege to send DOM changes to offline tabs
+            reqTableDomEl = document.getElementById('requests_table_content').outerHTML;
+			localStorage.setItem('tabUpdateTable', reqTableDomEl)
             reqViewedStatus = false;
         }
     };
@@ -228,7 +221,6 @@ AJAXREQ = (function(){
 			request_time: "2017-04-05T07:33:37",
 			status_code: 200
 		};
-		
 		objNum = Math.floor(Math.random() * (4));
 		for(var i= 0; i < objNum; i++){
 			ajaxReqArr.push(reqObj)
@@ -313,6 +305,9 @@ PAGEHEHEADUPDATE = (function(){
     var moduleName = 'PAGEHEHEADUPDATE',
 		newStatus, //'NEW' counter for page header
         that;
+	/**
+	* Change page title by update newStatus
+	*/
     function updatePageTitle(newStatus){
         if(newStatus==0){
             newStatus=''
@@ -371,7 +366,7 @@ TABSINTERACTIONS = (function(){
         return '_' + Math.random().toString(36).substr(2, 9);
     }
     /**
-     * Modify openTabs obj, remove closed tab, and set one other as active
+     * Modify openTabs obj, remove closed tabs, and set one as active
      */
     function removeTabId(){
         var openTabs,
@@ -443,8 +438,7 @@ TABSINTERACTIONS = (function(){
         if(event.key=='openTabs'){
             manageAjaxPolling()
         }else if(event.key=='tabUpdateTable'){
-            reqTableDomEl = domJSON.toDOM(localStorage['tabUpdateTable']);
-            conlsole.log('hhhhhhhhhhhhhhhhh:', reqTableDomEl)
+            reqTableDomEl = localStorage['tabUpdateTable'];
             CORE.triggerEvent({
                 type: 'tabUpdateTable',
                 data: reqTableDomEl
