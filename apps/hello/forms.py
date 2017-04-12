@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from django.forms import ModelForm, Textarea
-from django.forms import TextInput, DateInput, EmailInput
+from django.forms import TextInput, EmailInput
 from apps.hello.models import Person
+from apps.hello.widgets import MyCalendar
 
 
 class EditForm(ModelForm):
@@ -16,7 +17,7 @@ class EditForm(ModelForm):
                 'class': 'form-control',
                 'required': True
             }),
-            'date_of_birth': DateInput(attrs={
+            'date_of_birth': MyCalendar(attrs={
                 'class': 'form-control',
                 'required': True
             }),
