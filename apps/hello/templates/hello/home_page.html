@@ -4,6 +4,15 @@
     <div class="row">
         <div class="col-md-1"></div>
         <div class="col-md-4">
+            <div>
+                <h4>
+                {% if person.photo %}
+                    <img src='{{ MEDIA_URL }}{{ person.photo }}'>
+                {% else %}
+                    <img src='{{ STATIC_URL }}img/no_photo.jpg'>
+                {% endif %}
+                </h4>
+            </div>
             <div><h4>Name: {{ person.name }}</h4></div>
             <div><h4>Last name: {{ person.last_name }}</h4></div>
             <div><h4>Date of birth: {{ person.date_of_birth }}</h4></div>
@@ -17,11 +26,20 @@
             <div><h4>Bio: {{ person.bio|safe|linebreaks }}</h4></div>
         </div>
     </div>
+    <div class="row">
+        <div class="col-md-1"></div>
+        <div class="col-md-3">
+            <h4>
+                <a href="{% url 'hello:edit_page' %}">Edit</a>
+            </h4>
+        </div>
+    </div>
 {% else %}
     <div class="row">
         <div class="col-md-1"></div>
         <div class="col-md-6">
             <div><h2>No person was found</h2></div><br><br>
+            <h4><a href="{% url 'hello:edit_page' %}">Add person</a></h4>
         </div>
     </div>
 {% endif %}

@@ -1,0 +1,19 @@
+body {
+    margin: 5px;
+}
+
+.hide_element{
+    display: none;
+}
+
+.errorlist, .error{
+    margin: 0px;
+    color: #ff383a;
+}
+
+#form_submit_state{
+    padding: 4px;
+    color: #0362cf;
+    box-sizing: border-box;
+    font-size: 160%;
+}

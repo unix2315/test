@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block login %}{% endblock %}
+
+{% block content %}
+    <div class="col-md-3 sbros_col new_padding">
+
+        <form method="post" action="{% url 'hello:login' %}">
+        {% csrf_token %}
+
+        <div class="form-group">
+            {{ form.username.label_tag }}
+            <input id="id_username" class="form-control" maxlength="254" name="username" type="text" />
+            {{ form.errors.username }}
+        </div>
+        <div class="form-group">
+            {{ form.password.label_tag }}
+            <input id="id_password" class="form-control" name="password" type="password" />
+            {{ form.errors.password }}
+        </div>
+
+        <input type="hidden" name="next" value="{{ next }}" />
+
+        <button id="id_submit_btn" type="submit" class="btn btn-primary">Submit</button>
+        {% if form.errors %}
+            <ul class="errorlist"><li>
+                Your username and password didn't match. Please try again.
+            </li></ul>
+            <p>{{ form.errors.all }}</p>
+        {% endif %}
+        </form>
+    </div>
+    <div class="col-md-4 sbros_col new_padding"></div>
+{% endblock %}

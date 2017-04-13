@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block extra_head %}
+    {{ form.media }}
+{% endblock extra_head %}
+
+{% block content %}
+    <div class="row">
+        <form id="id_edit_form" action="" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="col-md-2 text-right"></div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="id_name">Name:</label>
+                    {{ form.name }}
+                    {{ form.name.errors }}
+                </div>
+                <div class="form-group">
+                    <label for="id_last_name">Last name:</label>
+                    {{ form.last_name }}
+                    {{ form.last_name.errors }}
+                    </div>
+                <div class="form-group">
+                    <label for="id_date_of_birth">Date of birth:</label>
+                    {{ form.date_of_birth }}
+                    {{ form.date_of_birth.errors }}
+                    </div>
+                <div class="form-group">
+                    <label for="id_photo">Photo:</label><br/>
+                    {% if person_photo %}
+                        <img id="person_img" src='{{ person_photo }}'><br/>
+                        <input id="photo-clear_id" name="photo-clear" type="checkbox" />
+                        <label for="photo-clear_id">Clear</label>
+                    {% else %}
+                        <img id="person_img" src='{{ STATIC_URL }}img/no_photo.jpg'><br/>
+                    {% endif %}
+                    <input id="id_photo" name="photo" type="file" />
+                    {{ form.photo.errors }}
+                </div>
+            </div>
+            <div class="col-md-1"></div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="id_email">Email:</label>
+                    {{ form.email }}
+                    {{ form.email.errors }}
+                </div>
+                <div class="form-group">
+                    <label for="id_jabber">Jabber:</label>
+                    {{ form.jabber }}
+                    {{ form.jabber.errors }}
+                </div>
+                <div class="form-group">
+                    <label for="id_skype">Skype:</label>
+                    {{ form.skype }}
+                    {{ form.skype.errors }}
+                </div>
+                <div class="form-group">
+                    <label for="id_other_contacts">Other contacts:</label>
+                    {{ form.other_contacts }}
+                    {{ form.other_contacts.errors }}
+                </div>
+                <div class="form-group">
+                    <label for="id_bio">Bio:</label>
+                    {{ form.bio }}
+                    {{ form.bio.errors }}
+                </div>
+                <div id="loading_state" style="display:none;"><span>loading...</span></div>
+                {% if messages %}
+                    {% for message in messages %}
+                        <div id="form_submit_state">{{ message }}</div>
+                    {% endfor %}
+                {% else %}
+                     <div id="form_submit_state" style="display:none;">"Form submit successfully!"</div>
+                {% endif %}
+                <button id="id_submit_btn" type="submit" class="btn btn-primary">Submit</button>
+            </div>
+        </form>
+    </div>
+    <div class="row">
+        <div class="col-md-3">
+            <h3> <a href="{% url 'hello:requests_page' %}">Requests</a></h3>
+        </div>
+    </div>
+{% endblock %}
+{% block scripts %}
+    <script src='https://code.jquery.com/jquery-1.12.4.js'></script>
+    <script src='{% static "js/jquery-ui.min.js" %}'></script>
+    <script src="http://malsup.github.com/jquery.form.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
+    <script src='{% static "js/ajax_forms_mod.js" %}'></script>
+{% endblock scripts %}

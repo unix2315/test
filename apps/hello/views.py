@@ -2,8 +2,13 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from apps.hello.models import Person, RequestsLog
-import json
 from django.utils.dateparse import parse_datetime
+from apps.hello.forms import EditForm
+from django.contrib import messages
+import json
+from apps.hello.utils import return_json_response
+from apps.hello.utils import return_json_errors
+from django.contrib.auth.decorators import login_required
 
 
 def home_view(request):
@@ -38,3 +43,29 @@ def requests_view(request):
     last_requests = requests[:10]
     context = {'requests': last_requests}
     return render(request, 'hello/requests_page.html', context)
+
+
+@login_required
+def edit_view(request):
+    person = Person.objects.first()
+    edit_form = EditForm(instance=person)
+    context = dict()
+    if request.method == 'POST':
+        edit_form = EditForm(request.POST, request.FILES, instance=person)
+        if edit_form.is_valid():
+            edit_form.save()
+            if request.is_ajax():
+                json_resp = return_json_response(person)
+                return HttpResponse(json_resp)
+            messages.add_message(
+                request,
+                messages.INFO,
+                "Form submit successfully!"
+            )
+        if request.is_ajax():
+            json_resp = return_json_errors(edit_form)
+            return HttpResponse(json_resp)
+    if person and person.photo:
+        context['person_photo'] = person.photo.url
+    context['form'] = edit_form
+    return render(request, 'hello/edit_page.html', context)
