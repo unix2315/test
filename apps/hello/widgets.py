@@ -13,5 +13,5 @@ class MyCalendar(widgets.TextInput):
         js = (
             'https://code.jquery.com/jquery-1.12.4.js',
             'js/jquery-ui.min.js',
-            'js/datepicker.js'
+            'js/mydatepicker.js'
         )
