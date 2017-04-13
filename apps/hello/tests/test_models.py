@@ -6,12 +6,10 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 import os
 from django.conf import settings
 import shutil
-from datetime import date
 
 
 @override_settings(MEDIA_ROOT=settings.MEDIA_TEST_ROOT)
 class PersonModelTest(TestCase):
-
 
     def setUp(self):
         self.test_person = Person.objects.first()
@@ -30,7 +28,8 @@ class PersonModelTest(TestCase):
         self.first_photo_file = self.test_person.photo.path
 
     def tearDown(self):
-        if os.path.exists(settings.MEDIA_TEST_ROOT):
+        test_dir = os.path.exists(settings.MEDIA_TEST_ROOT)
+        if test_dir:
             shutil.rmtree(settings.MEDIA_TEST_ROOT)
 
     def test_save_method(self):
@@ -54,7 +53,7 @@ class PersonModelTest(TestCase):
                 name='test_image_2.png',
                 content=test_img.read(),
                 content_type='image/png'
-        )
+            )
         self.test_person.photo = self.test_image_2
         self.test_person.save()
         self.second_photo_file = self.test_person.photo.path

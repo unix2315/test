@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 from django.db import models
-from PIL import Image
-from apps.hello.utils import user_directory_path
+from apps.hello.utils import user_directory_path, resize_photo
+from apps.hello.utils import remove_unused_photo
 
 
 class Person(models.Model):
@@ -22,6 +22,17 @@ class Person(models.Model):
 
     def __unicode__(self):
         return '%s %s' % (self.name, self.last_name)
+
+    def save(self, *args, **kwargs):
+        try:
+            exist_person = Person.objects.get(id=self.id)
+        except Exception:
+            pass
+        else:
+            remove_unused_photo(self, exist_person)
+        super(Person, self).save(*args, **kwargs)
+        if self.photo:
+            resize_photo(self)
 
 
 class RequestsLog(models.Model):
