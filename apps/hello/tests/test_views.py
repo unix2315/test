@@ -273,4 +273,38 @@ class EditPageViewTest(TestCase):
             'This field is required.',
             count=2
         )
-        self.assertContains(test_response, 'Enter a valid date.')
+        self.assertContains(
+            test_response,
+            'Enter a valid date.'
+        )
+        
+    def test_edit_view_ajax_post_request_return_proper_data(self):
+        """Check, if edit_view ajax post request with valid data,
+        return proper JSON response"""
+        self.response = self.client.post(reverse('hello:edit_page'),
+            VALID_DATA,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        ajax_response = json.loads(self.response.content)
+        self.assertEqual(ajax_response['status'], 'OK')
+
+    def test_edit_view_ajax_request_no_valid_data_return_errordict(self):
+        """Check, if edit_view ajax post request with invalid data,
+        return errordict with errors"""
+        self.response = self.client.post(reverse('hello:edit_page'),
+            INVALID_DATA,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        ajax_response = json.loads(self.response.content)
+        self.assertEqual(
+            ajax_response['name'],
+            unicode('* This field is required.')
+        )
+        self.assertEqual(
+            ajax_response['last_name'],
+            unicode('* This field is required.')
+        )
+        self.assertEqual(
+            ajax_response['date_of_birth'],
+            unicode('* Enter a valid date.')
+        )
