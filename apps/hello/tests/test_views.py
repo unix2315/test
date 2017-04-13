@@ -23,6 +23,18 @@ REQUEST_DATA = {
     'status_code': 200
 }
 
+VALID_DATA = {
+    'name': 'Alex',
+    'last_name': 'Ivanov',
+    'date_of_birth': '1945-05-09'
+}
+
+INVALID_DATA = {
+    'name': '',
+    'last_name': '',
+    'date_of_birth': '1945'
+}
+
 
 class HomePageViewTest(TestCase):
 
@@ -207,3 +219,35 @@ class EditPageViewTest(TestCase):
             person.last_name,
             str(test_response.context['form']['last_name'])
         )
+    def test_edit_view_post_request(self):
+        """Check, if EditForm post request return proper data"""
+        test_response = self.client.post(reverse('hello:edit_page'), VALID_DATA)
+        self.assertEqual(test_response.status_code, 200)
+        self.assertContains(test_response, "Form submit successfully!")
+
+    def test_edit_view_create_new_Person_istance(self):
+        """Check, if EditForm post request create new Person instance,
+        if there are no one in DB"""
+        Person.objects.all().delete()
+        self.assertFalse(Person.objects.first())
+        self.client.post(reverse('hello:edit_page'), VALID_DATA)
+        self.assertTrue(Person.objects.first())
+
+    def test_edit_view_post_request_update_data_in_DB(self):
+        """Check, if EditForm post request update person data in DB"""
+        self.client.post(reverse('hello:edit_page'), VALID_DATA)
+        person_data = Person.objects.first()
+        self.assertEqual(VALID_DATA['name'], person_data.name)
+        self.assertEqual(VALID_DATA['last_name'], person_data.last_name)
+        self.assertEqual(VALID_DATA['date_of_birth'], str(person_data.date_of_birth))
+
+    def test_edit_view_post_request_invalid_data_dont_update_data_in_DB(self):
+        """Check, if EditForm post request with invalid data,
+        don't update person data in DB, but shows errors"""
+        test_response = self.client.post(reverse('hello:edit_page'), INVALID_DATA)
+        person_data = Person.objects.first()
+        self.assertNotEqual(INVALID_DATA['name'], person_data.name)
+        self.assertNotEqual(INVALID_DATA['last_name'], person_data.last_name)
+        self.assertNotEqual(INVALID_DATA['date_of_birth'], unicode(person_data.date_of_birth))
+        self.assertContains(test_response, 'This field is required.', count=2)
+        self.assertContains(test_response, 'Enter a valid date.')
