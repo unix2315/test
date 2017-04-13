@@ -277,11 +277,12 @@ class EditPageViewTest(TestCase):
             test_response,
             'Enter a valid date.'
         )
-        
+
     def test_edit_view_ajax_post_request_return_proper_data(self):
         """Check, if edit_view ajax post request with valid data,
         return proper JSON response"""
-        self.response = self.client.post(reverse('hello:edit_page'),
+        self.response = self.client.post(
+            reverse('hello:edit_page'),
             VALID_DATA,
             HTTP_X_REQUESTED_WITH='XMLHttpRequest'
         )
@@ -291,7 +292,8 @@ class EditPageViewTest(TestCase):
     def test_edit_view_ajax_request_no_valid_data_return_errordict(self):
         """Check, if edit_view ajax post request with invalid data,
         return errordict with errors"""
-        self.response = self.client.post(reverse('hello:edit_page'),
+        self.response = self.client.post(
+            reverse('hello:edit_page'),
             INVALID_DATA,
             HTTP_X_REQUESTED_WITH='XMLHttpRequest'
         )

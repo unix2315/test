@@ -2,10 +2,12 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from apps.hello.models import Person, RequestsLog
-import json
 from django.utils.dateparse import parse_datetime
 from apps.hello.forms import EditForm
 from django.contrib import messages
+import json
+from apps.hello.utils import return_json_response
+from apps.hello.utils import return_json_errors
 
 
 def home_view(request):
@@ -49,11 +51,18 @@ def edit_view(request):
     if request.method == 'POST':
         edit_form = EditForm(request.POST, request.FILES, instance=person)
         if edit_form.is_valid():
-            if edit_form.has_changed():
-                edit_form.save()
-            messages.add_message(request,
-                                 messages.INFO,
-                                 "Form submit successfully!")
+            edit_form.save()
+            if request.is_ajax():
+                json_resp = return_json_response(person)
+                return HttpResponse(json_resp)
+            messages.add_message(
+                request,
+                messages.INFO,
+                "Form submit successfully!"
+            )
+        if request.is_ajax():
+            json_resp = return_json_errors(edit_form)
+            return HttpResponse(json_resp)
     if person and person.photo:
         context['person_photo'] = person.photo.url
     context['form'] = edit_form

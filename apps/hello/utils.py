@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 import os
 from PIL import Image
+import json
 
 
 def remove_unused_photo(instance, exist_person):
@@ -32,3 +33,20 @@ def resize_photo(instance):
         image = Image.open(filename)
         image.thumbnail(size, Image.ANTIALIAS)
         image.save(filename)
+
+
+def return_json_response(person):
+    resp = dict()
+    resp['status'] = 'OK'
+    if person and person.photo:
+        resp['person_photo'] = person.photo.url
+    json_resp = json.dumps(resp)
+    return json_resp
+
+
+def return_json_errors(form):
+    dict_err = dict()
+    for field in form.errors:
+        dict_err[field] = form.errors[field].as_text()
+    json_resp = json.dumps(dict_err)
+    return json_resp
