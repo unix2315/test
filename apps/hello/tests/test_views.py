@@ -9,6 +9,7 @@ from apps.hello.forms import EditForm
 import json
 from django.core.urlresolvers import reverse
 import time
+from django.contrib.auth.models import User, AnonymousUser
 
 
 PERSON_DATA = {
@@ -171,6 +172,7 @@ class EditPageViewTest(TestCase):
 
     def setUp(self):
         self.client = Client()
+        self.client.login(username='admin', password='admin')
 
     def test_request_to_edit_page_return_correct_status_code(self):
         """Check, if request to edit_page return status code 200"""
@@ -184,6 +186,7 @@ class EditPageViewTest(TestCase):
 
     def test_edit_view_return_correct_status_code(self):
         """Check, if edit_view return status code 200"""
+        self.admin = User.objects.get(pk=1)
         test_request = RequestFactory().get(reverse('hello:edit_page'))
         test_response = edit_view(test_request)
         self.assertEqual(test_response.status_code, 200)
@@ -310,3 +313,25 @@ class EditPageViewTest(TestCase):
             ajax_response['date_of_birth'],
             unicode('* Enter a valid date.')
         )
+        
+    def test_edit_page_return_redirect_to_login_page(self):
+        """Check, if AnonymousUser request to edit_page,
+         return status code 302 and redirect to login_page"""
+        test_request = RequestFactory().get(reverse('hello:edit_page'))
+        test_request.user = AnonymousUser()
+        test_response = edit_view(test_request)
+        self.assertEqual(test_response.status_code, 302)
+        self.assertIn('login', test_response.url)
+
+
+class LoginTest(TestCase):
+
+    def test_request_to_login_page_return_correct_status_code(self):
+        """Check, if request to login_page return status code 200"""
+        test_response = self.client.get('/login/')
+        self.assertEqual(test_response.status_code, 200)
+
+    def test_request_to_login_page_uses_proper_template(self):
+        """Check, if login_page view render right template"""
+        test_response = self.client.get('/login/')
+        self.assertTemplateUsed(test_response, 'registration/login.html')

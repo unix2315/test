@@ -13,8 +13,8 @@ AJAXFORM = (function(){
     ajaxSubmitOpts = {
         dataType: 'json',
         beforeSubmit: handleFormData,
-        //success: handleResponseData,
-        error: handleResponseData
+        success: handleResponseData,
+        //error: handleResponseData
     };
     validOpts = {
         rules: {
@@ -30,16 +30,20 @@ AJAXFORM = (function(){
     };
     function handleFormData(){
         $("#form_submit_state").hide();
+        $('.errorlist').remove();
         blockForm()
     }
-    function handleResponseData() {
+    function handleResponseData(data) {
         setTimeout(function () {
             $('#id_submit_btn')
                 .replaceWith('<button id="id_submit_btn" type="submit" class="btn btn-primary">Submit</button>');
             unblockForm();
-            if (mockData['status'] == 'OK') {
+            if (data['status'] == 'OK') {
                 showSuccessMsg();
-                photoUpdate(mockData)
+                photoUpdate(data)
+            }
+            else{
+                showFieldsErrors(data)
             }
         }, 1000);
     }
@@ -61,7 +65,16 @@ AJAXFORM = (function(){
             $("#form_submit_state").hide()
         }, 1500)
     }
-    function photoUpdate(mockData){
+    /**
+    * Handle form validation errors from server
+    */
+    function showFieldsErrors(data){
+        for (var fieldName in data) {
+            var fieldId = '#id_' + fieldName;
+            $(fieldId).after('<div class="errorlist">' + data[fieldName] + '</div>')
+        }
+    }    
+    function photoUpdate(data){
         var $photoImg = $('#person_img'),
             $photoClear = $('#photo-clear_id'),
             $photoInput = $('#id_photo');
@@ -73,7 +86,7 @@ AJAXFORM = (function(){
                 $photoInput.before('<input id="photo-clear_id" name="photo-clear" type="checkbox" />' +
                                 '<label for="photo-clear_id">Clear</label>')
             }
-            $photoImg.replaceWith('<img id="person_img" src="' + mockData['person_photo'] + '">');
+            $photoImg.replaceWith('<img id="person_img" src="' + data['person_photo'] + '">');
             $photoInput.replaceWith('<input id="id_photo" name="photo" type="file" />')
         }
         if ($photoClear.is(':checked')){
