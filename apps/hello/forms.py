@@ -18,7 +18,7 @@ class EditForm(ModelForm):
                 'required': True
             }),
             'date_of_birth': MyCalendar(attrs={
-                'class': 'form-control',
+                'class': 'form-control datepicker',
                 'required': True
             }),
             'email': EmailInput(attrs={'class': 'form-control'}),

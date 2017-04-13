@@ -1,5 +1,9 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
+{% block extra_head %}
+    {{ form.media }}
+{% endblock extra_head %}
+
 {% block content %}
     <div class="row">
         <form id="id_edit_form" action="" method="post" enctype="multipart/form-data">
@@ -80,11 +84,10 @@
     </div>
 {% endblock %}
 {% block scripts %}
-    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src='https://code.jquery.com/jquery-1.12.4.js'></script>
+    <script src='{% static "js/jquery-ui.min.js" %}'></script>
     <script src="http://malsup.github.com/jquery.form.js"></script>
     <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
     <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
-    <script src='{% static "js/datepicker.js" %}'></script>
     <script src='{% static "js/ajax_form_module.js" %}'></script>
 {% endblock scripts %}
