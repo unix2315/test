@@ -23,11 +23,15 @@
                     </div>
                 <div class="form-group">
                     <label for="id_photo">Photo:</label><br/>
-                    <!--Вручную определяем поле chckbox чтоб clear существующее фото из БД-->
-                    <img id="person_img" src="{{ STATIC_URL }}img/no_photo.jpg" class="text-center"><br/>
-                    <!--<input id="photo-clear_id" name="photo-clear" type="checkbox" />
-                    <label for="photo-clear_id">Clear</label>-->
+                    {% if person_photo %}
+                        <img id="person_img" src='{{ person_photo }}'><br/>
+                        <input id="photo-clear_id" name="photo-clear" type="checkbox" />
+                        <label for="photo-clear_id">Clear</label>
+                    {% else %}
+                        <img id="person_img" src='{{ STATIC_URL }}img/no_photo.jpg'><br/>
+                    {% endif %}
                     <input id="id_photo" name="photo" type="file" />
+                    {{ form.photo.errors }}
                 </div>
             </div>
             <div class="col-md-1"></div>
@@ -58,7 +62,13 @@
                     {{ form.bio.errors }}
                 </div>
                 <div id="loading_state" style="display:none;"><span>loading...</span></div>
-                <div id="form_submit_state" style="display:none;">"Form submit successfully!"</div>
+                {% if messages %}
+                    {% for message in messages %}
+                        <div id="form_submit_state">{{ message }}</div>
+                    {% endfor %}
+                {% else %}
+                     <div id="form_submit_state" style="display:none;">"Form submit successfully!"</div>
+                {% endif %}
                 <button id="id_submit_btn" type="submit" class="btn btn-primary">Submit</button>
             </div>
         </form>

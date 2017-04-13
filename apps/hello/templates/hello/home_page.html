@@ -6,7 +6,11 @@
         <div class="col-md-4 sbros_col new_padding">
             <div>
                 <h4>
+                {% if person.photo %}
+                    <img src='{{ MEDIA_URL }}{{ person.photo }}'>
+                {% else %}
                     <img src='{{ STATIC_URL }}img/no_photo.jpg'>
+                {% endif %}
                 </h4>
             </div>
             <div><h4>Name: {{ person.name }}</h4></div>

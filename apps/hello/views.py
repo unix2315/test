@@ -5,6 +5,7 @@ from apps.hello.models import Person, RequestsLog
 import json
 from django.utils.dateparse import parse_datetime
 from apps.hello.forms import EditForm
+from django.contrib import messages
 
 
 def home_view(request):
@@ -45,5 +46,15 @@ def edit_view(request):
     person = Person.objects.first()
     edit_form = EditForm(instance=person)
     context = dict()
+    if request.method == 'POST':
+        edit_form = EditForm(request.POST, request.FILES, instance=person)
+        if edit_form.is_valid():
+            if edit_form.has_changed():
+                edit_form.save()
+            messages.add_message(request,
+                                 messages.INFO,
+                                 "Form submit successfully!")
+    if person and person.photo:
+        context['person_photo'] = person.photo.url
     context['form'] = edit_form
     return render(request, 'hello/edit_page.html', context)
