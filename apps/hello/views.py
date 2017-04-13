@@ -8,6 +8,7 @@ from django.contrib import messages
 import json
 from apps.hello.utils import return_json_response
 from apps.hello.utils import return_json_errors
+from django.contrib.auth.decorators import login_required
 
 
 def home_view(request):
@@ -44,6 +45,7 @@ def requests_view(request):
     return render(request, 'hello/requests_page.html', context)
 
 
+@login_required
 def edit_view(request):
     person = Person.objects.first()
     edit_form = EditForm(instance=person)

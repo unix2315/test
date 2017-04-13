@@ -188,6 +188,7 @@ class EditPageViewTest(TestCase):
         """Check, if edit_view return status code 200"""
         self.admin = User.objects.get(pk=1)
         test_request = RequestFactory().get(reverse('hello:edit_page'))
+        test_request.user = self.admin
         test_response = edit_view(test_request)
         self.assertEqual(test_response.status_code, 200)
 
@@ -313,7 +314,7 @@ class EditPageViewTest(TestCase):
             ajax_response['date_of_birth'],
             unicode('* Enter a valid date.')
         )
-        
+
     def test_edit_page_return_redirect_to_login_page(self):
         """Check, if AnonymousUser request to edit_page,
          return status code 302 and redirect to login_page"""
