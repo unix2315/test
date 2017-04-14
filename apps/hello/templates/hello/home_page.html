@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load admin_tag %}
 {% block content %}
 {% if person %}
     <div class="row">
@@ -31,7 +32,7 @@
         <div class="col-md-3">
             <h4>
                 <a href="{% url 'hello:edit_page' %}">Edit </a>|
-                <a href=""> (admin)</a>
+                <a href="{% edit_link person %}"> (admin)</a>
             </h4>
         </div>
     </div>
