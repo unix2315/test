@@ -62,3 +62,6 @@ class ModelsLog(models.Model):
     object_id = models.PositiveIntegerField()
     content_object = generic.GenericForeignKey('content_type', 'object_id')
     report = models.CharField(max_length=50, default='')
+
+    def __unicode__(self):
+        return u'%s' % (self.report)
