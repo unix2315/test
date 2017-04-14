@@ -112,10 +112,10 @@ REQTABLE = (function(){
             $(function(){
                 that.initEditNewStatus()
             });
-			$reqTable = $('#requests_table');
-            if (document.addEventListener) {
-		        document.addEventListener("focus", this.removeAllNewStatus, false);
-		        document.addEventListener("mousemove", this.removeAllNewStatus, false);
+			//$reqTable = $('#requests_table');
+            if (window.addEventListener) {
+		        window.addEventListener("focus", that.removeAllNewStatus, false);
+		        window.addEventListener("mousemove", that.removeAllNewStatus, false);
 	        }
             reqViewedStatus = false;
 			CORE.registerEvents(moduleName, {
@@ -167,7 +167,9 @@ REQTABLE = (function(){
             $trEls = cloneDomTrEls();
             if($trEls.length&&reqViewedStatus==false){
                 lastViewedReq = localStorage["lastRequestTime"];
-                localStorage['lastViewedReqTime'] = lastViewedReq;
+                if(localStorage['lastViewedReqTime']<lastViewedReq){
+                    localStorage['lastViewedReqTime'] = lastViewedReq;
+                }
                 removeNewStatus($trEls, lastViewedReq);
                 insertNewReqTable($trEls);
 				// Update localStorege to send DOM changes to offline tabs 
@@ -196,7 +198,7 @@ REQTABLE = (function(){
             insertNewReqTable($trEls);
 			// Update localStorege to send DOM changes to offline tabs
             reqTableDomEl = document.getElementById('requests_table_content').outerHTML;
-			localStorage.setItem('tabUpdateTable', reqTableDomEl)
+			localStorage.setItem('tabUpdateTable', reqTableDomEl);
             reqViewedStatus = false;
         }
     };
