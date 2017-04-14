@@ -1,4 +1,15 @@
 {% extends 'base.html' %}
+{% load admin_tag %}
+{% block edit_links %}
+    <div class="col-md-2">
+        {% if person %}
+        <h4>
+            <a href="{% url 'hello:edit_page' %}">Edit </a>|
+            <a href="{% edit_link person %}"> (admin)</a>
+        </h4>
+    {% endif %}
+    </div>
+{% endblock edit_links %}
 {% block content %}
 {% if person %}
     <div class="row">
@@ -24,14 +35,6 @@
             <div><h4>Skype: {{ person.other_contacts|safe|linebreaks }}</h4></div>
             <div><h4>Other contacts: <br></h4></div>
             <div><h4>Bio: {{ person.bio|safe|linebreaks }}</h4></div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-1"></div>
-        <div class="col-md-3">
-            <h4>
-                <a href="{% url 'hello:edit_page' %}">Edit</a>
-            </h4>
         </div>
     </div>
 {% else %}

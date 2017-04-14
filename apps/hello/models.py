@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 from django.db import models
 from apps.hello.utils import user_directory_path, resize_photo
 from apps.hello.utils import remove_unused_photo
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes import generic
 
 
 class Person(models.Model):
@@ -46,3 +48,20 @@ class RequestsLog(models.Model):
 
     def __unicode__(self):
         return u'%s %s %s' % (self.request_time, self.path, self.method)
+
+
+class ModelsLog(models.Model):
+    EDIT_ACTIONS = (
+        ('ADD', 'Creation'),
+        ('EDIT', 'EDIT'),
+        ('DEL', 'DELETE'),
+    )
+    log_time = models.DateTimeField(auto_now_add=True)
+    action = models.CharField(max_length=4, choices=EDIT_ACTIONS)
+    content_type = models.ForeignKey(ContentType)
+    object_id = models.PositiveIntegerField()
+    content_object = generic.GenericForeignKey('content_type', 'object_id')
+    report = models.CharField(max_length=50, default='')
+
+    def __unicode__(self):
+        return u'%s' % (self.report)
