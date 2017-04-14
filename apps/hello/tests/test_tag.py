@@ -7,6 +7,8 @@ from apps.hello.models import Person
 class AdminTagTest(TestCase):
 
     def test_edit_link_return_proper_url(self):
+        """Check, if edit_link template tag return proper link
+        to object admin page"""
         any_object = Person.objects.first()
         obj_admin_url = ('/admin/%s/%s/%d/' % (
             any_object._meta.app_label,
