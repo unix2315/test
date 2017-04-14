@@ -26,3 +26,22 @@ class ModelsCountCommandTest(TestCase):
                 '%s : %d' % (model_name, obj_count),
                 std_out_content
             )
+
+    def test_models_count_command_std_err(self):
+        """Check, if models_count command prints proper data in stdErr"""
+        models_list = (
+            ContentType
+            .objects
+            .filter(app_label='hello')
+        )
+        std_err = StringIO()
+        call_command('models_count', stderr=std_err)
+        std_err_content = std_err.getvalue()
+        for model in models_list:
+            model_cls = model.model_class()
+            model_name = model.model
+            obj_count = model_cls.objects.count()
+            self.assertIn(
+                'error:%s : %d' % (model_name, obj_count),
+                std_err_content
+            )
