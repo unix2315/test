@@ -9,6 +9,7 @@ LOG_MODELS = [Person, RequestsLog]
 
 @receiver(post_save)
 def model_save_handler(sender, created, **kwargs):
+    obj_name = sender.__name__
     if sender in LOG_MODELS:
         if created:
             action = 'ADD'
@@ -21,7 +22,7 @@ def model_save_handler(sender, created, **kwargs):
             action=action,
             report='%s(%s object id=%s) has %s' % (
                 kwargs['instance'],
-                sender.__name__,
+                obj_name,
                 kwargs['instance'].id,
                 rep_act
             )
@@ -31,13 +32,14 @@ def model_save_handler(sender, created, **kwargs):
 
 @receiver(post_delete)
 def model_del_handler(sender, **kwargs):
+    obj_name = sender.__name__
     if sender in LOG_MODELS:
         model_log = ModelsLog(
             content_object=kwargs['instance'],
             action='DEL',
             report='%s(%s object id=%s) has %s' % (
                 kwargs['instance'],
-                sender.__name__,
+                obj_name,
                 kwargs['instance'].id,
                 'deleted'
             )

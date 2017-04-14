@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 from django.test import TestCase
-from apps.hello.models import Person
+from apps.hello.models import Person, ModelsLog
 from datetime import date
 
 
@@ -22,7 +23,7 @@ class SignalsTest(TestCase):
         a new 'ADD' entry in ModelsLog model"""
         last_log = ModelsLog.objects.last()
         self.assertEqual(last_log.action, 'ADD')
-        self.assertIn(self.test_person, last_log.report)
+        self.assertIn(unicode(self.test_person), last_log.report)
 
     def test_update_signal_handler(self):
         """Check, if a update an object, is add
@@ -32,7 +33,7 @@ class SignalsTest(TestCase):
         self.test_person.save()
         last_log = ModelsLog.objects.last()
         self.assertEqual(last_log.action, 'EDIT')
-        self.assertIn(self.test_person, last_log.report)
+        self.assertIn(unicode(self.test_person), last_log.report)
 
     def test_delete_signal_hendler(self):
         """Check, if a delete an object, is add
