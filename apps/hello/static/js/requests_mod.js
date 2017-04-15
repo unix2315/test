@@ -299,7 +299,13 @@ AJAXREQ = (function(){
             CORE.registerModule(moduleName, this);
         },
         init: function(){
+            var $lastEditTime;
             that = this;
+            sessionStorage["lastEditTime"] = '';
+            $lastEditTime = $('#last_edit_time');
+            if ($lastEditTime.length) {
+                sessionStorage["lastEditTime"] = $lastEditTime.text();
+            }
             that.startGetAjaxReqPolling()
         },
 		//Start ajax requests polling via seInterval function
@@ -322,7 +328,7 @@ AJAXREQ = (function(){
                 lastEditTime;
             if('ajaxReqArr' in ajaxRepObj) {
                 lastEditTime = ajaxRepObj.lastEditTime;
-                localStorage['lastEditTime'] = lastEditTime;
+                sessionStorage['lastEditTime'] = lastEditTime;
                 ajaxReqArr = ajaxRepObj.ajaxReqArr;
 				$reqTrEls = getReqTrEls(ajaxReqArr);
 				CORE.triggerEvent({
