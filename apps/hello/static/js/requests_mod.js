@@ -101,6 +101,28 @@ REQTABLE = (function(){
 
         return false
     }
+    function removeAllNewStatus(){
+        var $trEls,
+            lastViewedReq;
+        lastViewedReq = localStorage['lastViewedReqTime'];
+        $trEls = cloneDomTrEls();
+        if($trEls.length&&reqViewedStatus==false){
+            removeNewStatus($trEls, lastViewedReq);
+            insertNewReqTable($trEls);
+            CORE.triggerEvent({
+                type: 'removeAllNewStatus'
+            });
+        }
+    }
+    /**
+     * Routing storage event handler by event key
+     * @param event
+     */
+    function storageEventRouter(event){
+        if(event.key=='lastViewedReqTime'){
+            removeAllNewStatus()
+        }
+    }
     return{
         coreRegister: function(){
             CORE.registerModule(moduleName, this);
@@ -114,8 +136,9 @@ REQTABLE = (function(){
             });
 			//$reqTable = $('#requests_table');
             if (window.addEventListener) {
-		        window.addEventListener("focus", that.removeAllNewStatus, false);
-		        window.addEventListener("mousemove", that.removeAllNewStatus, false);
+		        window.addEventListener("focus", that.removeAllNewStatusHandler, false);
+		        window.addEventListener("mousemove", that.removeAllNewStatusHandler, false);
+                window.addEventListener('storage', storageEventRouter)
 	        }
             reqViewedStatus = false;
 			CORE.registerEvents(moduleName, {
@@ -159,22 +182,14 @@ REQTABLE = (function(){
             })
         },
         //Facade public method removing all 'NEW' from DOM
-        removeAllNewStatus: function(){
-            var $trEls,
-                lastViewedReq;
-            $trEls = cloneDomTrEls();
-            if($trEls.length&&reqViewedStatus==false){
-                lastViewedReq = sessionStorage["lastRequestTime"];
-                //if(localStorage['lastViewedReqTime']<lastViewedReq){
-                localStorage['lastViewedReqTime'] = lastViewedReq;
-                //}
-                removeNewStatus($trEls, lastViewedReq);
-                insertNewReqTable($trEls);
-                CORE.triggerEvent({
-                    type: 'removeAllNewStatus'
-                });
-                reqViewedStatus = true
+        removeAllNewStatusHandler: function(){
+            var lastViewedReq;
+            lastViewedReq = sessionStorage["lastRequestTime"];
+            if(!localStorage['lastViewedReqTime']||lastViewedReq>localStorage['lastViewedReqTime']){
+                localStorage['lastViewedReqTime'] = lastViewedReq
             }
+            removeAllNewStatus();
+            reqViewedStatus = true
         },
 		//Facade ppublic method insrt new tr elements collections to DOM
         addNewRequests: function(data){
