@@ -146,12 +146,12 @@ REQTABLE = (function(){
             $trEls = cloneDomTrEls();
             if($trEls.length) {
                 lastReqTime = $trEls[0].getElementsByTagName('td')[1].innerHTML;
-                localStorage["lastRequestTime"] = lastReqTime;
+                sessionStorage["lastRequestTime"] = lastReqTime;
                 lastViewedReq = localStorage['lastViewedReqTime'];
                 removeNewStatus($trEls, lastViewedReq);
                 insertNewReqTable($trEls);
             }else{
-                localStorage["lastRequestTime"] = ''
+                sessionStorage["lastRequestTime"] = ''
             }
             CORE.triggerEvent({
                 type: 'initCountNewStatus',
@@ -161,11 +161,10 @@ REQTABLE = (function(){
         //Facade public method removing all 'NEW' from DOM
         removeAllNewStatus: function(){
             var $trEls,
-                lastViewedReq,
-                reqTableDomEl;
+                lastViewedReq;
             $trEls = cloneDomTrEls();
             if($trEls.length&&reqViewedStatus==false){
-                lastViewedReq = localStorage["lastRequestTime"];
+                lastViewedReq = sessionStorage["lastRequestTime"];
                 //if(localStorage['lastViewedReqTime']<lastViewedReq){
                 localStorage['lastViewedReqTime'] = lastViewedReq;
                 //}
@@ -227,18 +226,29 @@ AJAXREQ = (function(){
     function getReqTrEls(ajaxReqArr){
         var reqTrArr,
             $reqTrEls,
-            reqTrHtml;
+            reqTrHtml,
+            reqTime;
         newCount = 0;
         $reqTrEls = $();
         for (var i=0; i<ajaxReqArr.length; i++) {
-			newCount += 1;
+            var newVar;
+            reqTime = ajaxReqArr[i].request_time;
+            if(sessionStorage["lastRequestTime"]!=''&&reqTime>sessionStorage["lastRequestTime"]){
+                sessionStorage["lastRequestTime"] = reqTime
+            }
+            if(reqTime>localStorage['lastViewedReqTime']){
+                newVar = 'NEW';
+                newCount +=1
+            }else{
+                newVar = ''
+            }
             reqTrArr = [
                 +i + 1,
                 ajaxReqArr[i].request_time,
                 ajaxReqArr[i].path,
                 ajaxReqArr[i]['status_code'],
                 ajaxReqArr[i]['method'],
-                'NEW'
+                newVar
             ];
             reqTrHtml = '<tr><td>' + reqTrArr.join('</td><td>') + '</td></tr>';
             $reqTrEls = $reqTrEls.add(reqTrHtml);
@@ -259,7 +269,7 @@ AJAXREQ = (function(){
             if(ajaxReqPollingInterval==null){
                 ajaxReqPollingInterval = setInterval(function(){
 					var ajaxRequestData = {};
-					ajaxRequestData['last_request_time'] = localStorage["lastRequestTime"];
+					ajaxRequestData['last_request_time'] = sessionStorage["lastRequestTime"];
 					$.get('/requests/', ajaxRequestData).done(that.handleGetAjaxReqPoll)
 					//ajaxReqArr = getMockAjaxData();
 					//that.handleGetAjaxReqPoll(ajaxReqArr)
@@ -270,7 +280,7 @@ AJAXREQ = (function(){
         handleGetAjaxReqPoll: function(ajaxReqArr){
             var $reqTrEls;
             if(ajaxReqArr.length) {
-                localStorage["lastRequestTime"] = ajaxReqArr[0].request_time;
+                sessionStorage["lastRequestTime"] = ajaxReqArr[0].request_time;
 				$reqTrEls = getReqTrEls(ajaxReqArr);
 				CORE.triggerEvent({
                     type: 'newAjaxRespPoll',
