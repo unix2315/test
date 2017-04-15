@@ -132,9 +132,11 @@ REQTABLE = (function(){
 			var $reqTable;
             that = this;
             $(function(){
-                that.initEditNewStatus()
+                that.initEditNewStatus();
+                if (document.visibilityState == "visible") {
+                    that.removeAllNewStatusHandler()
+                }
             });
-			//$reqTable = $('#requests_table');
             if (window.addEventListener) {
 		        window.addEventListener("focus", that.removeAllNewStatusHandler, false);
 		        window.addEventListener("mousemove", that.removeAllNewStatusHandler, false);
