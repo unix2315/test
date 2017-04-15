@@ -223,20 +223,30 @@ AJAXREQ = (function(){
 	function getMockAjaxData(){
 		var ajaxReqArr,
 			reqObj,
-			objNum;
+			objNum,
+            ajaxReqObj,
+            arrRandom,
+            rand;
+        arrRandom = [0, 1, 0];
+        rand = Math.floor(Math.random() * arrRandom.length);
+        if(rand==0) return {};
+        ajaxReqObj = {};
+        ajaxReqObj['lastEditTime'] = '2017-04-05T06:33:37';
 		ajaxReqArr = [];
 		reqObj = {
 			id: 0,
 			method: "GET",
 			path: "/requests/",
 			request_time: "2017-04-05T07:33:37",
-			status_code: 200
+			status_code: 200,
+            priority: 0
 		};
-		objNum = Math.floor(Math.random() * (4));
-		for(var i= 0; i < objNum; i++){
+		//objNum = Math.floor(Math.random() * (4));
+		for(var i= 1; i < 11; i++){
 			ajaxReqArr.push(reqObj)
 		}
-		return ajaxReqArr
+        ajaxReqObj['ajaxReqArr'] = ajaxReqArr;
+		return ajaxReqObj
 	}
 	//Private helper method take JSON data from server 
 	//return tr elements collections to insert in requests table
@@ -244,28 +254,40 @@ AJAXREQ = (function(){
         var reqTrArr,
             $reqTrEls,
             reqTrHtml,
-            reqTime;
+            selectTrEl,
+            reqTime,
+            reqId,
+            reqPrior;
         newCount = 0;
         $reqTrEls = $();
         for (var i=0; i<ajaxReqArr.length; i++) {
             var newVar;
             reqTime = ajaxReqArr[i].request_time;
-            if(sessionStorage["lastRequestTime"]!=''&&reqTime>sessionStorage["lastRequestTime"]){
-                sessionStorage["lastRequestTime"] = reqTime
-            }
             if(reqTime>localStorage['lastViewedReqTime']){
                 newVar = 'NEW';
                 newCount +=1
             }else{
                 newVar = ''
             }
+            reqId = ajaxReqArr[i].id;
+            reqPrior = ajaxReqArr[i].priority;
+            selectTrEl = '<select name="'+reqId+'">';
+            for (var j=0; j<6; j++){
+                if (j==reqPrior){
+                    selectTrEl += '<option value="'+j+'" selected>'+j+'</option>';
+                }else{
+                    selectTrEl += '<option value="'+j+'" >'+j+'</option>';
+                }
+            }
+            selectTrEl += '</select>';
             reqTrArr = [
                 +i + 1,
                 ajaxReqArr[i].request_time,
                 ajaxReqArr[i].path,
                 ajaxReqArr[i]['status_code'],
                 ajaxReqArr[i]['method'],
-                newVar
+                newVar,
+                selectTrEl
             ];
             reqTrHtml = '<tr><td>' + reqTrArr.join('</td><td>') + '</td></tr>';
             $reqTrEls = $reqTrEls.add(reqTrHtml);
@@ -282,22 +304,26 @@ AJAXREQ = (function(){
         },
 		//Start ajax requests polling via seInterval function
         startGetAjaxReqPolling: function(){
-			//var ajaxReqArr;
+			var ajaxReqObj;
             if(ajaxReqPollingInterval==null){
                 ajaxReqPollingInterval = setInterval(function(){
 					var ajaxRequestData = {};
-					ajaxRequestData['last_request_time'] = sessionStorage["lastRequestTime"];
-					$.get('/requests/', ajaxRequestData).done(that.handleGetAjaxReqPoll)
-					//ajaxReqArr = getMockAjaxData();
-					//that.handleGetAjaxReqPoll(ajaxReqArr)
+					ajaxRequestData['last_edit_time'] = sessionStorage["lastEditTime"];
+					//$.get('/requests/', ajaxRequestData).done(that.handleGetAjaxReqPoll)
+					ajaxReqObj = getMockAjaxData();
+					that.handleGetAjaxReqPoll(ajaxReqObj)
 				}, 4000)
             }
         },
 		//Handle ajax response data, running helper method and trigger newAjaxRespPoll event
-        handleGetAjaxReqPoll: function(ajaxReqArr){
-            var $reqTrEls;
-            if(ajaxReqArr.length) {
-                sessionStorage["lastRequestTime"] = ajaxReqArr[0].request_time;
+        handleGetAjaxReqPoll: function(ajaxRepObj){
+            var $reqTrEls,
+                ajaxReqArr,
+                lastEditTime;
+            if('ajaxReqArr' in ajaxRepObj) {
+                lastEditTime = ajaxRepObj.lastEditTime;
+                localStorage['lastEditTime'] = lastEditTime;
+                ajaxReqArr = ajaxRepObj.ajaxReqArr;
 				$reqTrEls = getReqTrEls(ajaxReqArr);
 				CORE.triggerEvent({
                     type: 'newAjaxRespPoll',
@@ -307,6 +333,7 @@ AJAXREQ = (function(){
 					}
                 })
             }
+            return false
         },
         //Stop ajax requests polling interval
         stopGetAjaxReqPolling: function(){
