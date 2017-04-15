@@ -101,6 +101,28 @@ REQTABLE = (function(){
 
         return false
     }
+    function removeAllNewStatus(){
+        var $trEls,
+            lastViewedReq;
+        lastViewedReq = localStorage['lastViewedReqTime'];
+        $trEls = cloneDomTrEls();
+        if($trEls.length&&reqViewedStatus==false){
+            removeNewStatus($trEls, lastViewedReq);
+            insertNewReqTable($trEls);
+            CORE.triggerEvent({
+                type: 'removeAllNewStatus'
+            });
+        }
+    }
+    /**
+     * Routing storage event handler by event key
+     * @param event
+     */
+    function storageEventRouter(event){
+        if(event.key=='lastViewedReqTime'){
+            removeAllNewStatus()
+        }
+    }
     return{
         coreRegister: function(){
             CORE.registerModule(moduleName, this);
@@ -110,17 +132,19 @@ REQTABLE = (function(){
 			var $reqTable;
             that = this;
             $(function(){
-                that.initEditNewStatus()
+                that.initEditNewStatus();
+                if (document.visibilityState == "visible") {
+                    that.removeAllNewStatusHandler()
+                }
             });
-			$reqTable = $('#requests_table');
-            if (document.addEventListener) {
-		        document.addEventListener("focus", this.removeAllNewStatus, false);
-		        document.addEventListener("mousemove", this.removeAllNewStatus, false);
+            if (window.addEventListener) {
+		        window.addEventListener("focus", that.removeAllNewStatusHandler, false);
+		        window.addEventListener("mousemove", that.removeAllNewStatusHandler, false);
+                window.addEventListener('storage', storageEventRouter)
 	        }
             reqViewedStatus = false;
 			CORE.registerEvents(moduleName, {
-                'newAjaxRespPoll': this.addNewRequests,
-                'tabUpdateTable': this.tabUpdateReqTable
+                'newAjaxRespPoll': this.addNewRequests
             });
             return false
         },
@@ -147,12 +171,12 @@ REQTABLE = (function(){
             $trEls = cloneDomTrEls();
             if($trEls.length) {
                 lastReqTime = $trEls[0].getElementsByTagName('td')[1].innerHTML;
-                localStorage["lastRequestTime"] = lastReqTime;
+                sessionStorage["lastRequestTime"] = lastReqTime;
                 lastViewedReq = localStorage['lastViewedReqTime'];
                 removeNewStatus($trEls, lastViewedReq);
                 insertNewReqTable($trEls);
             }else{
-                localStorage["lastRequestTime"] = ''
+                sessionStorage["lastRequestTime"] = ''
             }
             CORE.triggerEvent({
                 type: 'initCountNewStatus',
@@ -160,24 +184,14 @@ REQTABLE = (function(){
             })
         },
         //Facade public method removing all 'NEW' from DOM
-        removeAllNewStatus: function(){
-            var $trEls,
-                lastViewedReq,
-                reqTableDomEl;
-            $trEls = cloneDomTrEls();
-            if($trEls.length&&reqViewedStatus==false){
-                lastViewedReq = localStorage["lastRequestTime"];
-                localStorage['lastViewedReqTime'] = lastViewedReq;
-                removeNewStatus($trEls, lastViewedReq);
-                insertNewReqTable($trEls);
-				// Update localStorege to send DOM changes to offline tabs 
-                reqTableDomEl = document.getElementById('requests_table_content').outerHTML;
-				localStorage.setItem('tabUpdateTable', reqTableDomEl);
-                CORE.triggerEvent({
-                    type: 'removeAllNewStatus'
-                });
-                reqViewedStatus = true
+        removeAllNewStatusHandler: function(){
+            var lastViewedReq;
+            lastViewedReq = sessionStorage["lastRequestTime"];
+            if(!localStorage['lastViewedReqTime']||lastViewedReq>localStorage['lastViewedReqTime']){
+                localStorage['lastViewedReqTime'] = lastViewedReq
             }
+            removeAllNewStatus();
+            reqViewedStatus = true
         },
 		//Facade ppublic method insrt new tr elements collections to DOM
         addNewRequests: function(data){
@@ -194,9 +208,6 @@ REQTABLE = (function(){
                 updateTabNum(i, $trEls);
             }
             insertNewReqTable($trEls);
-			// Update localStorege to send DOM changes to offline tabs
-            reqTableDomEl = document.getElementById('requests_table_content').outerHTML;
-			localStorage.setItem('tabUpdateTable', reqTableDomEl)
             reqViewedStatus = false;
         }
     };
@@ -232,18 +243,29 @@ AJAXREQ = (function(){
     function getReqTrEls(ajaxReqArr){
         var reqTrArr,
             $reqTrEls,
-            reqTrHtml;
+            reqTrHtml,
+            reqTime;
         newCount = 0;
         $reqTrEls = $();
         for (var i=0; i<ajaxReqArr.length; i++) {
-			newCount += 1;
+            var newVar;
+            reqTime = ajaxReqArr[i].request_time;
+            if(sessionStorage["lastRequestTime"]!=''&&reqTime>sessionStorage["lastRequestTime"]){
+                sessionStorage["lastRequestTime"] = reqTime
+            }
+            if(reqTime>localStorage['lastViewedReqTime']){
+                newVar = 'NEW';
+                newCount +=1
+            }else{
+                newVar = ''
+            }
             reqTrArr = [
                 +i + 1,
                 ajaxReqArr[i].request_time,
                 ajaxReqArr[i].path,
                 ajaxReqArr[i]['status_code'],
                 ajaxReqArr[i]['method'],
-                'NEW'
+                newVar
             ];
             reqTrHtml = '<tr><td>' + reqTrArr.join('</td><td>') + '</td></tr>';
             $reqTrEls = $reqTrEls.add(reqTrHtml);
@@ -256,11 +278,7 @@ AJAXREQ = (function(){
         },
         init: function(){
             that = this;
-            CORE.registerEvents(moduleName,{
-                'startAjaxPolling': this.startGetAjaxReqPolling,
-                'stopAjaxPolling': this.stopGetAjaxReqPolling
-            });
-            this.startGetAjaxReqPolling()
+            that.startGetAjaxReqPolling()
         },
 		//Start ajax requests polling via seInterval function
         startGetAjaxReqPolling: function(){
@@ -268,7 +286,7 @@ AJAXREQ = (function(){
             if(ajaxReqPollingInterval==null){
                 ajaxReqPollingInterval = setInterval(function(){
 					var ajaxRequestData = {};
-					ajaxRequestData['last_request_time'] = localStorage["lastRequestTime"];
+					ajaxRequestData['last_request_time'] = sessionStorage["lastRequestTime"];
 					$.get('/requests/', ajaxRequestData).done(that.handleGetAjaxReqPoll)
 					//ajaxReqArr = getMockAjaxData();
 					//that.handleGetAjaxReqPoll(ajaxReqArr)
@@ -279,7 +297,7 @@ AJAXREQ = (function(){
         handleGetAjaxReqPoll: function(ajaxReqArr){
             var $reqTrEls;
             if(ajaxReqArr.length) {
-                localStorage["lastRequestTime"] = ajaxReqArr[0].request_time;
+                sessionStorage["lastRequestTime"] = ajaxReqArr[0].request_time;
 				$reqTrEls = getReqTrEls(ajaxReqArr);
 				CORE.triggerEvent({
                     type: 'newAjaxRespPoll',
@@ -324,21 +342,18 @@ PAGEHEHEADUPDATE = (function(){
             CORE.registerEvents(moduleName,{
                 'removeAllNewStatus': this.resetPageHeader,
 				'newAjaxRespPoll': this.ajaxUpdatePageHeader,
-				'initCountNewStatus': this.initNewStatus,
-                'tabUpdateTitle': updatePageTitle
+				'initCountNewStatus': this.initNewStatus
             });
         },
 		//Return init count of new requests
 		initNewStatus: function(data){
 			newStatus = data;
             updatePageTitle(newStatus);
-            //localStorage.setItem('tabUpdateTitle', newStatus)
 		},
 		//Reset page title after removing all 'NEW' status
         resetPageHeader: function(){
             newStatus = 0;
             updatePageTitle(newStatus);
-            localStorage.setItem('tabUpdateTitle', newStatus)
         },
 		//Update page title, by new requests 
         ajaxUpdatePageHeader: function(data){
@@ -347,145 +362,9 @@ PAGEHEHEADUPDATE = (function(){
                 newStatus = 10
             }
             updatePageTitle(newStatus);
-            localStorage.setItem('tabUpdateTitle', newStatus)
 		}
     };
 })();
 PAGEHEHEADUPDATE.coreRegister();
-
-TABSINTERACTIONS = (function(){
-    var moduleName,
-		tabId,
-        that;
-    moduleName = 'TABSINTERACTIONS';
-    /**
-     * Helper method to get unique ID for new tab
-     * @returns {string}
-     */
-    function getUniqueId(){
-        return '_' + Math.random().toString(36).substr(2, 9);
-    }
-    /**
-     * Modify openTabs obj, remove closed tabs, and set one as active
-     */
-    function removeTabId(){
-        var openTabs,
-            onlineTab;
-        openTabs = JSON.parse(localStorage['openTabs']);
-        delete openTabs[tabId];
-        for (var tab in openTabs) {
-            if (openTabs.hasOwnProperty(tab)) {
-                if(openTabs[tab]=='active') {
-                    onlineTab=undefined;
-                    break
-                } else {
-                    onlineTab = tab
-                }
-            }
-        }
-        if (onlineTab!=undefined) {
-            openTabs[onlineTab] = 'active'
-        }
-        localStorage.setItem('openTabs', JSON.stringify(openTabs));
-    }
-    /**
-     * Modify openTabs obj, add active tab and reset others
-     * Trigger startPolling event if tab is active
-     */
-    function handleWinFocus(){
-        var openTabs;
-        CORE.triggerEvent({
-            type: 'startAjaxPolling'
-        });
-        openTabs = JSON.parse(localStorage['openTabs']);
-        if(openTabs[tabId]!='active'){
-            for(var tab in openTabs){
-                if (openTabs.hasOwnProperty(tab)) {
-                    if(tab==tabId){
-                        openTabs[tab] = 'active';
-                    }else{
-                        openTabs[tab] = 'offline';
-                    }
-                }
-            }
-        }
-        localStorage.setItem('openTabs', JSON.stringify(openTabs));
-    }
-    /**
-     * Start/stop ajax polling by update tab status via storage event
-     */
-    function manageAjaxPolling(){
-        var openTabs;
-        openTabs = JSON.parse(localStorage['openTabs']);
-        if(openTabs[tabId]=='active'){
-            CORE.triggerEvent({
-                type: 'startAjaxPolling'
-            });
-        }else if(openTabs[tabId]=='offline'){
-            CORE.triggerEvent({
-                type: 'stopAjaxPolling'
-            });
-        }
-    }
-
-    /**
-     * Routing storage event handler by event key
-     * @param event
-     */
-    function storageEventRouter(event){
-        var reqTableDomEl,
-            newStatus;
-        if(event.key=='openTabs'){
-            manageAjaxPolling()
-        }else if(event.key=='tabUpdateTable'){
-            reqTableDomEl = localStorage['tabUpdateTable'];
-            CORE.triggerEvent({
-                type: 'tabUpdateTable',
-                data: reqTableDomEl
-            });
-        }else if(event.key=='tabUpdateTitle'){
-            newStatus = localStorage['tabUpdateTitle'];
-            CORE.triggerEvent({
-                type: 'tabUpdateTitle',
-                data: newStatus
-            });
-        }
-    }
-    return{
-        coreRegister: function() {
-            CORE.registerModule(moduleName, this);
-        },
-        init: function() {
-            var openTabs;
-            that = this;
-            tabId = getUniqueId();
-            $(function () {
-                if(localStorage['openTabs']){
-                    openTabs = JSON.parse(localStorage['openTabs']);
-                    for(var tab in openTabs) {
-                        if (openTabs.hasOwnProperty(tab)) {
-                            if (openTabs[tab]=='active') {
-                                openTabs[tabId] = 'offline';
-                                break
-                            }else openTabs[tabId] = 'active'
-                        }
-                    }
-                    if(!openTabs[tabId]){
-                        openTabs[tabId] = 'active'
-                    }
-                }else{
-                    openTabs = {};
-                    openTabs[tabId] = 'active'
-                }
-                localStorage.setItem('openTabs', JSON.stringify(openTabs))
-            });
-            window.addEventListener('focus', handleWinFocus);
-            window.addEventListener('mousemove', handleWinFocus);
-            window.addEventListener('unload', removeTabId);
-            window.addEventListener('storage', storageEventRouter)
-        }
-    };
-})();
-TABSINTERACTIONS.coreRegister();
 
 CORE.startAllMod()
