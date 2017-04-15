@@ -62,7 +62,7 @@ REQTABLE = (function(){
         return $trEls
     }
     //Private help method, removing 'NEW' from td elements
-    function removeNewStatus($trEls, lastViewedReq) {
+    function initRemoveNewStatus($trEls, lastViewedReq) {
         var timeTdEl,
             newTdEl;
         for (var i = 0, max = $trEls.length; i < max; i++) {
@@ -101,17 +101,35 @@ REQTABLE = (function(){
 
         return false
     }
-    function removeAllNewStatus(){
+
+    /**
+     * Delete all NEW status in requests table
+     * @param lastViewedReqTime
+     */
+    function removeAllNewStatus(lastViewedReqTime){
         var $trEls,
-            lastViewedReq;
-        lastViewedReq = localStorage['lastViewedReqTime'];
+            lastViewedReq,
+            timeTdEl,
+            newTdEl;
         $trEls = cloneDomTrEls();
-        if($trEls.length&&reqViewedStatus==false){
-            removeNewStatus($trEls, lastViewedReq);
+        if($trEls.length){
+            lastViewedReqTime = $trEls[0].getElementsByTagName('td')[1].innerHTML;
+            for (var i = 0, max = $trEls.length; i < max; i++) {
+                timeTdEl = $trEls[i].getElementsByTagName('td')[1].innerHTML;
+                newTdEl = $trEls[i].getElementsByTagName('td')[5];
+                if(timeTdEl>lastViewedReqTime){
+                    lastViewedReqTime = timeTdEl
+                }
+                if (newTdEl) {
+                    newTdEl.innerHTML = ''
+                }
+            }
+            console.log(lastViewedReqTime);
             insertNewReqTable($trEls);
             CORE.triggerEvent({
                 type: 'removeAllNewStatus'
             });
+            return lastViewedReqTime
         }
     }
     /**
@@ -131,6 +149,7 @@ REQTABLE = (function(){
         init: function(){
 			var $reqTable;
             that = this;
+            reqViewedStatus = false;
             $(function(){
                 that.initEditNewStatus();
                 if (document.visibilityState == "visible") {
@@ -142,21 +161,9 @@ REQTABLE = (function(){
 		        window.addEventListener("mousemove", that.removeAllNewStatusHandler, false);
                 window.addEventListener('storage', storageEventRouter)
 	        }
-            reqViewedStatus = false;
 			CORE.registerEvents(moduleName, {
                 'newAjaxRespPoll': this.addNewRequests
             });
-            return false
-        },
-		/**
-		* Insert new table content via addNewRequests/removeAllNewStatus events
-		* in active tab
-		*/
-		tabUpdateReqTable: function(reqTableDomEl){
-            var $domReqTable;
-            $domReqTable = $('#requests_table_content');
-            $domReqTable.replaceWith(reqTableDomEl);
-			reqViewedStatus = false;
             return false
         },
 		/**
@@ -164,19 +171,13 @@ REQTABLE = (function(){
 		*/
         initEditNewStatus: function(){
             var $trEls,
-                lastReqTime,
-				newTdEl,
                 lastViewedReq;
             newCount = 0;
             $trEls = cloneDomTrEls();
             if($trEls.length) {
-                lastReqTime = $trEls[0].getElementsByTagName('td')[1].innerHTML;
-                sessionStorage["lastRequestTime"] = lastReqTime;
                 lastViewedReq = localStorage['lastViewedReqTime'];
-                removeNewStatus($trEls, lastViewedReq);
+                initRemoveNewStatus($trEls, lastViewedReq);
                 insertNewReqTable($trEls);
-            }else{
-                sessionStorage["lastRequestTime"] = ''
             }
             CORE.triggerEvent({
                 type: 'initCountNewStatus',
@@ -185,13 +186,14 @@ REQTABLE = (function(){
         },
         //Facade public method removing all 'NEW' from DOM
         removeAllNewStatusHandler: function(){
-            var lastViewedReq;
-            lastViewedReq = sessionStorage["lastRequestTime"];
-            if(!localStorage['lastViewedReqTime']||lastViewedReq>localStorage['lastViewedReqTime']){
-                localStorage['lastViewedReqTime'] = lastViewedReq
+            var lastViewedReqTime;
+            if(reqViewedStatus==false){
+                lastViewedReqTime = removeAllNewStatus(lastViewedReqTime);
+                reqViewedStatus = true;
+                if(localStorage['lastViewedReqTime']||localStorage['lastViewedReqTime']<lastViewedReqTime){
+                    localStorage['lastViewedReqTime'] = lastViewedReqTime
+                }
             }
-            removeAllNewStatus();
-            reqViewedStatus = true
         },
 		//Facade ppublic method insrt new tr elements collections to DOM
         addNewRequests: function(data){
@@ -226,18 +228,22 @@ AJAXREQ = (function(){
 			objNum,
             ajaxReqObj,
             arrRandom,
-            rand;
+            rand,
+            time,
+            tmeStr;
         arrRandom = [0, 1, 0];
         rand = Math.floor(Math.random() * arrRandom.length);
         if(rand==0) return {};
         ajaxReqObj = {};
         ajaxReqObj['lastEditTime'] = '2017-04-05T06:33:37';
 		ajaxReqArr = [];
+        time = new Date();
+        timeStr = time.toISOString();
 		reqObj = {
 			id: 0,
 			method: "GET",
 			path: "/requests/",
-			request_time: "2017-04-05T07:33:37",
+			request_time: timeStr,
 			status_code: 200,
             priority: 0
 		};
