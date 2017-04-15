@@ -53,14 +53,6 @@ REQTABLE = (function(){
         }
         return $trEls
     }
-	//Private help method, unit new tr element collections with DOM one
-    function unitTrEls($trEls, $reqTrEls){
-        $trEls = $reqTrEls.add($trEls);
-        if($trEls.length > 10){
-            $trEls = $trEls.slice(0, 10)
-        }
-        return $trEls
-    }
     //Private help method, removing 'NEW' from td elements
     function initRemoveNewStatus($trEls, lastViewedReq) {
         var timeTdEl,
@@ -77,14 +69,6 @@ REQTABLE = (function(){
                 }
             }
         }
-        return false
-    }
-    function updateTabNum(i, $trEls){
-        var numStr, num;
-        $trEls[i].getElementsByTagName('td')[0].remove();
-        num = i+1;
-        numStr = '<td>'+num+'</td>';
-        $trEls[i].insertAdjacentHTML('afterBegin', numStr);
         return false
     }
     //Private help metod, inserting edit collections of td elements in DOM
@@ -197,20 +181,10 @@ REQTABLE = (function(){
         },
 		//Facade ppublic method insrt new tr elements collections to DOM
         addNewRequests: function(data){
-            var $trEls,
-                 reqTableDomEl;
-            $trEls = cloneDomTrEls();
+            var $trEls;
 			$reqTrEls = data.$reqTrEls;
-            if($trEls.length){
-                $trEls = unitTrEls($trEls, $reqTrEls)
-            }else{
-                $trEls = $reqTrEls
-            }
-            for(var i= 0, max = $trEls.length; i < max; i++){
-                updateTabNum(i, $trEls);
-            }
-            insertNewReqTable($trEls);
-            reqViewedStatus = false;
+            insertNewReqTable($reqTrEls);
+            reqViewedStatus = false
         }
     };
 }());
