@@ -108,7 +108,6 @@ REQTABLE = (function(){
                     newTdEl.innerHTML = ''
                 }
             }
-            console.log(lastViewedReqTime);
             insertNewReqTable($trEls);
             CORE.triggerEvent({
                 type: 'removeAllNewStatus'
@@ -125,6 +124,13 @@ REQTABLE = (function(){
             removeAllNewStatus()
         }
     }
+
+    /**
+     * Block priority select field after value have changed
+     */
+    function blockPrioritySelect() {
+            $('select').attr('disabled', 'disabled');
+        }
     return{
         coreRegister: function(){
             CORE.registerModule(moduleName, this);
@@ -135,6 +141,20 @@ REQTABLE = (function(){
             that = this;
             reqViewedStatus = false;
             $(function(){
+                $reqTable = $('#requests_table');
+                $reqTable.on('change', 'select', that.handleChangePriority);
+                $reqTable.on('focus', 'select', function(){
+                    console.log('stopAjaxPolling');
+                    CORE.triggerEvent({
+                        type: 'stopAjaxPolling'
+                    })
+                });
+                $reqTable.on('blur', 'select', function(){
+                    console.log('resumeAjaxPolling');
+                    CORE.triggerEvent({
+                        type: 'resumeAjaxPolling'
+                    })
+                });
                 that.initEditNewStatus();
                 if (document.visibilityState == "visible") {
                     that.removeAllNewStatusHandler()
@@ -181,10 +201,29 @@ REQTABLE = (function(){
         },
 		//Facade ppublic method insrt new tr elements collections to DOM
         addNewRequests: function(data){
-            var $trEls;
+            var $reqTrEls;
 			$reqTrEls = data.$reqTrEls;
             insertNewReqTable($reqTrEls);
             reqViewedStatus = false
+        },
+        /**
+         * Create postData object, send it to AJAXREQ mod, and block form after
+         */
+        handleChangePriority: function(event){
+            var changedReqId,
+                changedPriorityValue,
+                postData;
+            changedReqId = event.target.name;
+            changedPriorityValue = event.target.value;
+            postData = {
+                'reqId': changedReqId,
+                'reqPriority': changedPriorityValue
+            };
+            blockPrioritySelect();
+            CORE.triggerEvent({
+                type: 'priorityChanged',
+                data: postData
+            });
         }
     };
 }());
@@ -196,20 +235,23 @@ AJAXREQ = (function(){
         ajaxReqPollingInterval,
 		newCount;
 	//Create data array to mock response from server 
-	function getMockAjaxData(){
+	function getMockAjaxData(setRand){
 		var ajaxReqArr,
 			reqObj,
 			objNum,
-            ajaxReqObj,
+            ajaxRespObj,
             arrRandom,
             rand,
             time,
             tmeStr;
         arrRandom = [0, 1, 0];
         rand = Math.floor(Math.random() * arrRandom.length);
+        if(setRand!=undefined){
+            rand = setRand
+        }
         if(rand==0) return {};
-        ajaxReqObj = {};
-        ajaxReqObj['lastEditTime'] = '2017-04-05T06:33:37';
+        ajaxRespObj = {};
+        ajaxRespObj['lastEditTime'] = '2017-04-05T06:33:37';
 		ajaxReqArr = [];
         time = new Date();
         timeStr = time.toISOString();
@@ -225,8 +267,8 @@ AJAXREQ = (function(){
 		for(var i= 1; i < 11; i++){
 			ajaxReqArr.push(reqObj)
 		}
-        ajaxReqObj['ajaxReqArr'] = ajaxReqArr;
-		return ajaxReqObj
+        ajaxRespObj['ajaxReqArr'] = ajaxReqArr;
+		return ajaxRespObj
 	}
 	//Private helper method take JSON data from server 
 	//return tr elements collections to insert in requests table
@@ -286,30 +328,51 @@ AJAXREQ = (function(){
             if ($lastEditTime.length) {
                 sessionStorage["lastEditTime"] = $lastEditTime.text();
             }
-            that.startGetAjaxReqPolling()
+            that.startGetAjaxReqPolling();
+            CORE.registerEvents(moduleName,{
+                'priorityChanged': this.postAjaxPriorityData,
+                'resumeAjaxPolling': this.startGetAjaxReqPolling,
+                'stopAjaxPolling': this.stopGetAjaxReqPolling
+            });
+        },
+        /**
+         * Send priority data obj in post request
+         */
+        postAjaxPriorityData: function(postData){
+            var ajaxRespObj;
+            that.stopGetAjaxReqPolling();
+            //$.post('/requests/', postData).done(
+                // that.handleAjaxResponse,
+                // that.startGetAjaxReqPolling
+            // );
+            ajaxRespObj = getMockAjaxData(1);
+            that.handleAjaxResponse(ajaxRespObj);
+            console.log('POST_Response');
+            that.startGetAjaxReqPolling();
+            return false
         },
 		//Start ajax requests polling via seInterval function
         startGetAjaxReqPolling: function(){
-			var ajaxReqObj;
+			var ajaxRespObj;
             if(ajaxReqPollingInterval==null){
                 ajaxReqPollingInterval = setInterval(function(){
 					var ajaxRequestData = {};
 					ajaxRequestData['last_edit_time'] = sessionStorage["lastEditTime"];
-					//$.get('/requests/', ajaxRequestData).done(that.handleGetAjaxReqPoll)
-					ajaxReqObj = getMockAjaxData();
-					that.handleGetAjaxReqPoll(ajaxReqObj)
+					//$.get('/requests/', ajaxRequestData).done(that.handleAjaxResponse)
+					ajaxRespObj = getMockAjaxData();
+					that.handleAjaxResponse(ajaxRespObj)
 				}, 4000)
             }
         },
 		//Handle ajax response data, running helper method and trigger newAjaxRespPoll event
-        handleGetAjaxReqPoll: function(ajaxRepObj){
+        handleAjaxResponse: function(ajaxRespObj){
             var $reqTrEls,
                 ajaxReqArr,
                 lastEditTime;
-            if('ajaxReqArr' in ajaxRepObj) {
-                lastEditTime = ajaxRepObj.lastEditTime;
+            if('ajaxReqArr' in ajaxRespObj) {
+                lastEditTime = ajaxRespObj.lastEditTime;
                 sessionStorage['lastEditTime'] = lastEditTime;
-                ajaxReqArr = ajaxRepObj.ajaxReqArr;
+                ajaxReqArr = ajaxRespObj.ajaxReqArr;
 				$reqTrEls = getReqTrEls(ajaxReqArr);
 				CORE.triggerEvent({
                     type: 'newAjaxRespPoll',
