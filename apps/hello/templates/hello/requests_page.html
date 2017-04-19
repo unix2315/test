@@ -22,7 +22,7 @@
                     </tr>
                 </thead>
                 {% if requests %}
-                    <div id="last_edit_time" style="display:none;"></div>
+                    <div id="last_edit_time" style="display:none;">{{ last_edit_time }}</div>
                     <tbody id="requests_table_content">
                         {% for req in requests %}
                             <tr>

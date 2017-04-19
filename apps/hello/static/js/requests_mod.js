@@ -88,11 +88,11 @@ REQTABLE = (function(){
 
     /**
      * Delete all NEW status in requests table
-     * @param lastViewedReqTime
+     * @returns {*} lastViewedReqTime
      */
-    function removeAllNewStatus(lastViewedReqTime){
+    function removeAllNewStatus(){
         var $trEls,
-            lastViewedReq,
+            lastViewedReqTime,
             timeTdEl,
             newTdEl;
         $trEls = cloneDomTrEls();
@@ -126,7 +126,7 @@ REQTABLE = (function(){
     }
 
     /**
-     * Block priority select field after value have changed
+     * Block priority select field after value has changed
      */
     function blockPrioritySelect() {
             $('select').attr('disabled', 'disabled');
@@ -155,7 +155,7 @@ REQTABLE = (function(){
                         type: 'resumeAjaxPolling'
                     })
                 });
-                that.initEditNewStatus();
+                that.initEditReqTable();
                 if (document.visibilityState == "visible") {
                     that.removeAllNewStatusHandler()
                 }
@@ -170,16 +170,18 @@ REQTABLE = (function(){
             });
             return false
         },
+        
 		/**
-		* Init remove 'NEW' status at requests which are already viewed
-		*/
-        initEditNewStatus: function(){
+         * Init remove 'NEW' status at viewed requests,
+         * trigger 'initCountNewStatus' event, to reset page header new status
+         */
+        initEditReqTable: function(){
             var $trEls,
                 lastViewedReq;
             newCount = 0;
             $trEls = cloneDomTrEls();
             if($trEls.length) {
-                lastViewedReq = localStorage['lastViewedReqTime'];
+                lastViewedReq = localStorage['lastViewedTime'];
                 initRemoveNewStatus($trEls, lastViewedReq);
                 insertNewReqTable($trEls);
             }
@@ -188,14 +190,17 @@ REQTABLE = (function(){
                 data: newCount
             })
         },
-        //Facade public method removing all 'NEW' from DOM
+        /**
+         * Handle of 'focus' or 'mousemove' event to remove all NEW status in req table
+         * Save lastViewedTime in localStorage
+         */
         removeAllNewStatusHandler: function(){
             var lastViewedReqTime;
             if(reqViewedStatus==false){
-                lastViewedReqTime = removeAllNewStatus(lastViewedReqTime);
+                lastViewedReqTime = removeAllNewStatus();
                 reqViewedStatus = true;
-                if(localStorage['lastViewedReqTime']||localStorage['lastViewedReqTime']<lastViewedReqTime){
-                    localStorage['lastViewedReqTime'] = lastViewedReqTime
+                if(!localStorage['lastViewedTime']||localStorage['lastViewedTime']<lastViewedReqTime){
+                    localStorage['lastViewedTime'] = lastViewedReqTime
                 }
             }
         },
@@ -270,8 +275,13 @@ AJAXREQ = (function(){
         ajaxRespObj['ajaxReqArr'] = ajaxReqArr;
 		return ajaxRespObj
 	}
-	//Private helper method take JSON data from server 
-	//return tr elements collections to insert in requests table
+
+    /**
+     * Create tr elements collections, set NEW status at not viewed requests,
+     * add select element
+     * @param ajaxReqArr
+     * @returns {*|jQuery|HTMLElement}
+     */
     function getReqTrEls(ajaxReqArr){
         var reqTrArr,
             $reqTrEls,
@@ -285,7 +295,7 @@ AJAXREQ = (function(){
         for (var i=0; i<ajaxReqArr.length; i++) {
             var newVar;
             reqTime = ajaxReqArr[i].request_time;
-            if(reqTime>localStorage['lastViewedReqTime']){
+            if(reqTime>localStorage['lastViewedTime']){
                 newVar = 'NEW';
                 newCount +=1
             }else{
@@ -351,7 +361,9 @@ AJAXREQ = (function(){
             that.startGetAjaxReqPolling();
             return false
         },
-		//Start ajax requests polling via seInterval function
+        /**
+         * Start ajax requests polling via seInterval function
+         */
         startGetAjaxReqPolling: function(){
 			var ajaxRespObj;
             if(ajaxReqPollingInterval==null){
@@ -364,14 +376,19 @@ AJAXREQ = (function(){
 				}, 4000)
             }
         },
-		//Handle ajax response data, running helper method and trigger newAjaxRespPoll event
+        /**
+         * Handle ajax response data,
+         * set new value at "lastEditTime", sessionStorage,
+         * trigger newAjaxRespPoll event
+         * @param ajaxRespObj
+         */
         handleAjaxResponse: function(ajaxRespObj){
             var $reqTrEls,
                 ajaxReqArr,
                 lastEditTime;
             if('ajaxReqArr' in ajaxRespObj) {
                 lastEditTime = ajaxRespObj.lastEditTime;
-                sessionStorage['lastEditTime'] = lastEditTime;
+                sessionStorage["lastEditTime"] = lastEditTime;
                 ajaxReqArr = ajaxRespObj.ajaxReqArr;
 				$reqTrEls = getReqTrEls(ajaxReqArr);
 				CORE.triggerEvent({
@@ -384,7 +401,9 @@ AJAXREQ = (function(){
             }
             return false
         },
-        //Stop ajax requests polling interval
+        /**
+         * Stop ajax requests polling interval
+         */
         stopGetAjaxReqPolling: function(){
             if(ajaxReqPollingInterval!=null){
                 clearInterval(ajaxReqPollingInterval)

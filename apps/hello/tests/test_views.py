@@ -122,6 +122,23 @@ class RequestsViewTest(TestCase):
         test_response = self.client.get(reverse('hello:requests_page'))
         self.assertContains(test_response, "No requests was found")
 
+    def test_requests_view_return_last_edit_time_in_context(self):
+        """Check, if requests_view return last edit time value in context"""
+        for i in range(20):
+            RequestsLog(**REQUEST_DATA).save()
+        test_response = self.client.get(reverse('hello:requests_page'))
+        db_last_edit_time = (
+            RequestsLog
+            .objects
+            .order_by('edit_time')
+            .last()
+        )
+        self.assertTrue(test_response.context['last_edit_time'])
+        self.assertEqual(
+            test_response.context['last_edit_time'],
+            db_last_edit_time
+        )
+
     def test_requests_view_return_only_last_ten_requests(self):
         """Check, if requests_view return only last ten requests"""
         for i in range(20):
@@ -144,28 +161,54 @@ class RequestsViewTest(TestCase):
         for i in range(20):
             RequestsLog(**REQUEST_DATA).save()
         test_response = self.client.get(reverse('hello:requests_page'),
-                                        {'last_request_time': ''},
+                                        {'last_edit_time': ''},
                                         HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         ajax_response = json.loads(test_response.content)
-        self.assertEqual(len(ajax_response), 10)
+        self.assertEqual(len(ajax_response['ajaxRespObj']), 10)
 
-    def test_ajax_requests_view_proper_number_of_requests(self):
+    def test_ajax_requests_view_if_db_has_changed(self):
         """
-        Check, if ajax request return only requests,
-        with request_time more than last_request_time parameter
+        Check, if ajax request return last ten requests,
+        if data in db has changed,
+        and last_edit_time parameter in request,
+        less then one in DB
         """
         for i in range(20):
             RequestsLog(**REQUEST_DATA).save()
             time.sleep(0.01)
         last_requests = RequestsLog.objects.all()
-        third_last_request = last_requests[2].request_time
+        third_last_request = last_requests[2].edit_time
         test_response = self.client.get(
             reverse('hello:requests_page'),
-            {'last_request_time': third_last_request},
+            {'last_edit_time': third_last_request},
             HTTP_X_REQUESTED_WITH='XMLHttpRequest'
         )
         ajax_response = json.loads(test_response.content)
-        self.assertEqual(len(ajax_response), 2)
+        self.assertEqual(len(ajax_response['ajaxRespObj']), 10)
+
+    def test_ajax_requests_view_if_db_has_no_changes(self):
+        """
+        Check, if ajax request return empty context,
+        if data in db has no changes,
+        and last_edit_time parameter in request,
+        equal to one in DB
+        """
+        for i in range(20):
+            RequestsLog(**REQUEST_DATA).save()
+            time.sleep(0.01)
+        db_last_edit_time = (
+            RequestsLog
+            .objects
+            .order_by('edit_time')
+            .last()
+        )
+        test_response = self.client.get(
+            reverse('hello:requests_page'),
+            {'last_edit_time': db_last_edit_time},
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        ajax_response = json.loads(test_response.content)
+        self.assertEqual(ajax_response, {})
 
 
 class EditPageViewTest(TestCase):
