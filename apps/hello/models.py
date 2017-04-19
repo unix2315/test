@@ -39,22 +39,22 @@ class Person(models.Model):
 
 class RequestsLog(models.Model):
     PRIORITY = (
-        ('0', '0'),
-        ('1', '1'),
-        ('2', '2'),
-        ('3', '3'),
-        ('4', '4'),
-        ('5', '5'),
+        (0, 0),
+        (1, 1),
+        (2, 2),
+        (3, 3),
+        (4, 4),
+        (5, 5),
     )
     request_time = models.DateTimeField(auto_now_add=True)
     method = models.CharField(max_length=6)
     path = models.CharField(max_length=30)
     status_code = models.IntegerField(max_length=3)
     edit_time = models.DateTimeField(auto_now=True, null=True)
-    priority = models.CharField(
+    priority = models.PositiveIntegerField(
         max_length=2,
         choices=PRIORITY,
-        default='0'
+        default=0
     )
 
     class Meta:

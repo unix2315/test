@@ -20,12 +20,12 @@ def home_view(request):
 def requests_view(request):
     requests = RequestsLog.objects.all()
     if request.is_ajax():
-        if request.GET['last_request_time'] != '':
-            last_request_time = parse_datetime(
-                request.GET['last_request_time']
+        if request.GET['last_edit_time'] != '':
+            last_edit_time = parse_datetime(
+                request.GET['last_edit_time']
             )
             last_requests = (
-                requests.filter(request_time__gt=last_request_time)[:10]
+                requests.filter(request_time__gt=last_edit_time)[:10]
             )
         else:
             last_requests = requests[:10]
@@ -41,7 +41,8 @@ def requests_view(request):
         context = json.dumps(context)
         return HttpResponse(context, content_type='application/json')
     last_requests = requests[:10]
-    context = {'requests': last_requests}
+    last_edit_req = RequestsLog.objects.order_by('edit_time').last()
+    context = {'requests': last_requests, 'last_edit_req': last_edit_req}
     return render(request, 'hello/requests_page.html', context)
 
 

@@ -22,7 +22,7 @@
                     </tr>
                 </thead>
                 {% if requests %}
-                    <div id="last_edit_time" style="display:none;">{{ last_edit_time }}</div>
+                    <div id="last_edit_time" style="display:none;">{{ last_edit_req.edit_time|date:'c' }}</div>
                     <tbody id="requests_table_content">
                         {% for req in requests %}
                             <tr>
@@ -35,7 +35,11 @@
                                 <td>
                                     <select name="{{ req.id }}">
                                         {% for i in 6|create_range %}
-                                            <option value={{ i }}>{{ i }}</option>
+                                            {% if i == req.priority %}
+                                                <option value={{ i }} selected>{{ i }}</option>
+                                            {% else %}
+                                                <option value={{ i }}>{{ i }}</option>
+                                            {% endif %}
                                         {% endfor %}
                                     </select>
                                 </td>

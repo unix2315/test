@@ -126,17 +126,17 @@ class RequestsViewTest(TestCase):
         """Check, if requests_view return last edit time value in context"""
         for i in range(20):
             RequestsLog(**REQUEST_DATA).save()
-        test_response = self.client.get(reverse('hello:requests_page'))
         db_last_edit_time = (
             RequestsLog
             .objects
             .order_by('edit_time')
             .last()
         )
-        self.assertTrue(test_response.context['last_edit_time'])
+        test_response = self.client.get(reverse('hello:requests_page'))
+        self.assertTrue(test_response.context['last_edit_req'])
         self.assertEqual(
-            test_response.context['last_edit_time'],
-            db_last_edit_time
+            test_response.context['last_edit_req'].edit_time,
+            db_last_edit_time.edit_time
         )
 
     def test_requests_view_return_only_last_ten_requests(self):

@@ -24,7 +24,7 @@ class RequestsMiddlewareTest(TestCase):
         db_content = RequestsLog.objects.exists()
         self.assertEqual(db_content, False)
         self.client.get(reverse('hello:requests_page'),
-                        {'last_request_time': ''},
+                        {'last_edit_time': ''},
                         HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         db_content = RequestsLog.objects.exists()
         self.assertEqual(db_content, False)
