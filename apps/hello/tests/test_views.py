@@ -164,7 +164,7 @@ class RequestsViewTest(TestCase):
                                         {'last_edit_time': ''},
                                         HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         ajax_response = json.loads(test_response.content)
-        self.assertEqual(len(ajax_response['ajaxRespObj']), 10)
+        self.assertEqual(len(ajax_response['ajaxReqArr']), 10)
 
     def test_ajax_requests_view_if_db_has_changed(self):
         """
@@ -184,7 +184,7 @@ class RequestsViewTest(TestCase):
             HTTP_X_REQUESTED_WITH='XMLHttpRequest'
         )
         ajax_response = json.loads(test_response.content)
-        self.assertEqual(len(ajax_response['ajaxRespObj']), 10)
+        self.assertEqual(len(ajax_response['ajaxReqArr']), 10)
 
     def test_ajax_requests_view_if_db_has_no_changes(self):
         """
@@ -201,7 +201,7 @@ class RequestsViewTest(TestCase):
             .objects
             .order_by('edit_time')
             .last()
-        )
+        ).edit_time
         test_response = self.client.get(
             reverse('hello:requests_page'),
             {'last_edit_time': db_last_edit_time},

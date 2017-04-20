@@ -19,29 +19,36 @@ def home_view(request):
 
 def requests_view(request):
     requests = RequestsLog.objects.all()
+    last_edit_req = RequestsLog.objects.order_by('edit_time').last()
     if request.is_ajax():
+        ajax_resp_obj = {}
         if request.GET['last_edit_time'] != '':
             last_edit_time = parse_datetime(
                 request.GET['last_edit_time']
             )
-            last_requests = (
-                requests.filter(request_time__gt=last_edit_time)[:10]
-            )
-        else:
-            last_requests = requests[:10]
-        context = []
+            if not requests.filter(edit_time__gt=last_edit_time):
+                ajax_resp_obj = json.dumps(ajax_resp_obj)
+                return HttpResponse(
+                    ajax_resp_obj,
+                    content_type='application/json'
+                )
+        req_arr = []
+        last_requests = requests[:10]
         for req in last_requests:
-            context.append({
+            req_arr.append({
                 'id': req.id,
                 'request_time': str(req.request_time.isoformat()),
                 'path': req.path,
                 'status_code': req.status_code,
-                'method': req.method
+                'method': req.method,
+                'priority': req.priority
                 })
-        context = json.dumps(context)
-        return HttpResponse(context, content_type='application/json')
+        ajax_resp_obj['ajaxReqArr'] = req_arr
+        if last_edit_req:
+            ajax_resp_obj['lastEditTime'] = last_edit_req.edit_time.isoformat()
+        ajax_resp_obj = json.dumps(ajax_resp_obj)
+        return HttpResponse(ajax_resp_obj, content_type='application/json')
     last_requests = requests[:10]
-    last_edit_req = RequestsLog.objects.order_by('edit_time').last()
     context = {'requests': last_requests, 'last_edit_req': last_edit_req}
     return render(request, 'hello/requests_page.html', context)
 
