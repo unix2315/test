@@ -21,6 +21,7 @@ def requests_view(request):
     requests = RequestsLog.objects.all()
     last_edit_req = RequestsLog.objects.order_by('edit_time').last()
     if request.method == 'POST':
+        print(request.POST)
         for req in request.POST:
             if req and req != 'csrfmiddlewaretoken':
                 req_obj = RequestsLog.objects.get(id=req)

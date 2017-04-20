@@ -220,14 +220,15 @@ REQTABLE = (function(){
                 changedPriorityValue,
                 postData;
             changedReqId = event.target.name;
+            console.log(typeof changedReqId);
+            console.log(changedReqId);
             changedPriorityValue = event.target.value;
             /*postData = {
                 'reqId': changedReqId,
                 'reqPriority': changedPriorityValue
             };*/
-            postData = {
-                changedReqId: changedPriorityValue
-            };
+            postData = {};
+            postData[changedReqId] = changedPriorityValue;
             blockPrioritySelect();
             CORE.triggerEvent({
                 type: 'priorityChanged',
@@ -355,14 +356,15 @@ AJAXREQ = (function(){
         postAjaxPriorityData: function(postData){
             var ajaxRespObj;
             that.stopGetAjaxReqPolling();
-            //$.post('/requests/', postData).done(
-                // that.handleAjaxResponse,
-                // that.startGetAjaxReqPolling
-            // );
-            ajaxRespObj = getMockAjaxData(1);
-            that.handleAjaxResponse(ajaxRespObj);
+            console.log(postData);
+            $.post('/requests/', postData).done(
+                that.handleAjaxResponse,
+                that.startGetAjaxReqPolling
+            );
+            //ajaxRespObj = getMockAjaxData(1);
+            //that.handleAjaxResponse(ajaxRespObj);
             console.log('POST_Response');
-            that.startGetAjaxReqPolling();
+            //that.startGetAjaxReqPolling();
             return false
         },
         /**
