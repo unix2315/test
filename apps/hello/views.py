@@ -26,7 +26,11 @@ def requests_view(request):
             last_edit_time = parse_datetime(
                 request.GET['last_edit_time']
             )
-            if not requests.filter(edit_time__gt=last_edit_time):
+            if not (
+                requests
+                .filter(edit_time__gt=last_edit_time)
+                .exists()
+            ):
                 ajax_resp_obj = json.dumps(ajax_resp_obj)
                 return HttpResponse(
                     ajax_resp_obj,
