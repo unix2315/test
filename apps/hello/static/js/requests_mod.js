@@ -140,6 +140,7 @@ REQTABLE = (function(){
 			var $reqTable;
             that = this;
             reqViewedStatus = false;
+            $('#update_btn').hide();
             $(function(){
                 $reqTable = $('#requests_table');
                 $reqTable.on('change', 'select', that.handleChangePriority);
