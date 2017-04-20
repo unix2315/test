@@ -120,7 +120,7 @@ REQTABLE = (function(){
      * @param event
      */
     function storageEventRouter(event){
-        if(event.key=='lastViewedReqTime'){
+        if(event.key=='lastViewedTime'){
             removeAllNewStatus()
         }
     }
@@ -370,9 +370,9 @@ AJAXREQ = (function(){
                 ajaxReqPollingInterval = setInterval(function(){
 					var ajaxRequestData = {};
 					ajaxRequestData['last_edit_time'] = sessionStorage["lastEditTime"];
-					//$.get('/requests/', ajaxRequestData).done(that.handleAjaxResponse)
-					ajaxRespObj = getMockAjaxData();
-					that.handleAjaxResponse(ajaxRespObj)
+					$.get('/requests/', ajaxRequestData).done(that.handleAjaxResponse);
+					//ajaxRespObj = getMockAjaxData();
+					//that.handleAjaxResponse(ajaxRespObj)
 				}, 4000)
             }
         },
@@ -452,7 +452,7 @@ PAGEHEHEADUPDATE = (function(){
         },
 		//Update page title, by new requests 
         ajaxUpdatePageHeader: function(data){
-            newStatus += data.newCount;
+            newStatus = data.newCount;
             if(newStatus > 10){
                 newStatus = 10
             }
