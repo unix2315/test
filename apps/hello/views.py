@@ -20,22 +20,29 @@ def home_view(request):
 def requests_view(request):
     requests = RequestsLog.objects.all()
     last_edit_req = RequestsLog.objects.order_by('edit_time').last()
+    if request.method == 'POST':
+        for req in request.POST:
+            if req and req != 'csrfmiddlewaretoken':
+                req_obj = RequestsLog.objects.get(id=req)
+                req_obj.priority = request.POST[req]
+                req_obj.save()
     if request.is_ajax():
         ajax_resp_obj = {}
-        if request.GET['last_edit_time'] != '':
-            last_edit_time = parse_datetime(
-                request.GET['last_edit_time']
-            )
-            if not (
-                requests
-                .filter(edit_time__gt=last_edit_time)
-                .exists()
-            ):
-                ajax_resp_obj = json.dumps(ajax_resp_obj)
-                return HttpResponse(
-                    ajax_resp_obj,
-                    content_type='application/json'
+        if request.method == 'GET':
+            if request.GET['last_edit_time'] != '':
+                last_edit_time = parse_datetime(
+                    request.GET['last_edit_time']
                 )
+                if not (
+                    requests
+                    .filter(edit_time__gt=last_edit_time)
+                    .exists()
+                ):
+                    ajax_resp_obj = json.dumps(ajax_resp_obj)
+                    return HttpResponse(
+                        ajax_resp_obj,
+                        content_type='application/json'
+                    )
         req_arr = []
         last_requests = requests[:10]
         for req in last_requests:

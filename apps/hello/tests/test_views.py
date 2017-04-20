@@ -239,9 +239,9 @@ class RequestsViewTest(TestCase):
             self.assertNotEqual(
                 PRIORITY_DATA[req_id],
                 RequestsLog
-                    .objects
-                    .get(id=req_id)
-                    .priority
+                .objects
+                .get(id=req_id)
+                .priority
             )
         self.client.post(
             reverse('hello:requests_page'),
@@ -251,9 +251,9 @@ class RequestsViewTest(TestCase):
             self.assertEqual(
                 PRIORITY_DATA[req_id],
                 RequestsLog
-                    .objects
-                    .get(id=req_id)
-                    .priority
+                .objects
+                .get(id=req_id)
+                .priority
             )
 
     def test_requests_page_ajax_post_request(self):
@@ -267,8 +267,8 @@ class RequestsViewTest(TestCase):
             PRIORITY_DATA,
             HTTP_X_REQUESTED_WITH='XMLHttpRequest'
         )
-        self.assertEqual(len(test_response.context['requests']), 10)
-        self.assertContains(test_response, '/requests/', count=10)
+        ajax_response = json.loads(test_response.content)
+        self.assertEqual(len(ajax_response['ajaxReqArr']), 10)
 
     def test_requests_page_ajax_post_request_change_db(self):
         """Check, if ajax post request to requests page,
@@ -280,9 +280,9 @@ class RequestsViewTest(TestCase):
             self.assertNotEqual(
                 PRIORITY_DATA[req_id],
                 RequestsLog
-                    .objects
-                    .get(id=req_id)
-                    .priority
+                .objects
+                .get(id=req_id)
+                .priority
             )
         self.client.post(
             reverse('hello:requests_page'),
@@ -293,9 +293,9 @@ class RequestsViewTest(TestCase):
             self.assertEqual(
                 PRIORITY_DATA[req_id],
                 RequestsLog
-                    .objects
-                    .get(id=req_id)
-                    .priority
+                .objects
+                .get(id=req_id)
+                .priority
             )
 
 
