@@ -36,6 +36,12 @@ INVALID_DATA = {
     'date_of_birth': '1945'
 }
 
+PRIORITY_DATA = {
+    '10': 4,
+    '9': 3,
+    '8': 2
+}
+
 
 class HomePageViewTest(TestCase):
 
@@ -209,6 +215,88 @@ class RequestsViewTest(TestCase):
         )
         ajax_response = json.loads(test_response.content)
         self.assertEqual(ajax_response, {})
+
+    def test_requests_page_post_request(self):
+        """Check, if post request to requests page,
+        return last ten requests from db"""
+        for i in range(10):
+            RequestsLog(**REQUEST_DATA).save()
+            time.sleep(0.01)
+        test_response = self.client.post(
+            reverse('hello:requests_page'),
+            PRIORITY_DATA
+        )
+        self.assertEqual(len(test_response.context['requests']), 10)
+        self.assertContains(test_response, '/requests/', count=10)
+
+    def test_requests_page_post_request_change_db(self):
+        """Check, if post request to requests page,
+        is modify priority field in db"""
+        for i in range(10):
+            RequestsLog(**REQUEST_DATA).save()
+            time.sleep(0.01)
+        for req_id in PRIORITY_DATA:
+            self.assertNotEqual(
+                PRIORITY_DATA[req_id],
+                RequestsLog
+                    .objects
+                    .get(id=req_id)
+                    .priority
+            )
+        self.client.post(
+            reverse('hello:requests_page'),
+            PRIORITY_DATA
+        )
+        for req_id in PRIORITY_DATA:
+            self.assertEqual(
+                PRIORITY_DATA[req_id],
+                RequestsLog
+                    .objects
+                    .get(id=req_id)
+                    .priority
+            )
+
+    def test_requests_page_ajax_post_request(self):
+        """Check, if post ajax request to requests page,
+        return last ten requests from db"""
+        for i in range(10):
+            RequestsLog(**REQUEST_DATA).save()
+            time.sleep(0.01)
+        test_response = self.client.post(
+            reverse('hello:requests_page'),
+            PRIORITY_DATA,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        self.assertEqual(len(test_response.context['requests']), 10)
+        self.assertContains(test_response, '/requests/', count=10)
+
+    def test_requests_page_ajax_post_request_change_db(self):
+        """Check, if ajax post request to requests page,
+        is modify priority field in db"""
+        for i in range(10):
+            RequestsLog(**REQUEST_DATA).save()
+            time.sleep(0.01)
+        for req_id in PRIORITY_DATA:
+            self.assertNotEqual(
+                PRIORITY_DATA[req_id],
+                RequestsLog
+                    .objects
+                    .get(id=req_id)
+                    .priority
+            )
+        self.client.post(
+            reverse('hello:requests_page'),
+            PRIORITY_DATA,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        for req_id in PRIORITY_DATA:
+            self.assertEqual(
+                PRIORITY_DATA[req_id],
+                RequestsLog
+                    .objects
+                    .get(id=req_id)
+                    .priority
+            )
 
 
 class EditPageViewTest(TestCase):

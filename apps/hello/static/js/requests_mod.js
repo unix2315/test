@@ -221,9 +221,12 @@ REQTABLE = (function(){
                 postData;
             changedReqId = event.target.name;
             changedPriorityValue = event.target.value;
-            postData = {
+            /*postData = {
                 'reqId': changedReqId,
                 'reqPriority': changedPriorityValue
+            };*/
+            postData = {
+                changedReqId: changedPriorityValue
             };
             blockPrioritySelect();
             CORE.triggerEvent({
