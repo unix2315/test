@@ -9,6 +9,7 @@ import json
 from apps.hello.utils import return_json_response
 from apps.hello.utils import return_json_errors
 from django.contrib.auth.decorators import login_required
+from django.views.generic import ListView
 
 
 def home_view(request):
@@ -17,35 +18,26 @@ def home_view(request):
     return render(request, 'hello/home_page.html', context)
 
 
-def requests_view(request):
-    requests = RequestsLog.objects.all()
-    last_edit_req = RequestsLog.objects.order_by('edit_time').last()
-    if request.method == 'POST':
-        for req in request.POST:
-            if req and req != 'csrfmiddlewaretoken':
-                req_obj = RequestsLog.objects.get(id=req)
-                req_obj.priority = request.POST[req]
-                req_obj.save()
-    if request.is_ajax():
+class RequestsView(ListView):
+    model = RequestsLog
+    template_name = 'hello/requests_page.html'
+    context_object_name = 'requests'
+    queryset = RequestsLog.objects.all()[:10]
+    last_edit_req = None
+
+    def dispatch(self, *args, **kwargs):
+        self.last_edit_req = RequestsLog.objects.order_by('edit_time').last()
+        return super(RequestsView, self).dispatch(*args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(RequestsView, self).get_context_data(**kwargs)
+        context['last_edit_req'] = self.last_edit_req
+        return context
+
+    def get_json_resp_obj(self):
         ajax_resp_obj = {}
-        if request.method == 'GET':
-            if request.GET['last_edit_time'] != '':
-                last_edit_time = parse_datetime(
-                    request.GET['last_edit_time']
-                )
-                if not (
-                    requests
-                    .filter(edit_time__gt=last_edit_time)
-                    .exists()
-                ):
-                    ajax_resp_obj = json.dumps(ajax_resp_obj)
-                    return HttpResponse(
-                        ajax_resp_obj,
-                        content_type='application/json'
-                    )
         req_arr = []
-        last_requests = requests[:10]
-        for req in last_requests:
+        for req in self.get_queryset():
             req_arr.append({
                 'id': req.id,
                 'request_time': str(req.request_time.isoformat()),
@@ -55,13 +47,43 @@ def requests_view(request):
                 'priority': req.priority
                 })
         ajax_resp_obj['ajaxReqArr'] = req_arr
-        if last_edit_req:
-            ajax_resp_obj['lastEditTime'] = last_edit_req.edit_time.isoformat()
+        if self.last_edit_req:
+            ajax_resp_obj['lastEditTime'] = \
+                self.last_edit_req.edit_time.isoformat()
         ajax_resp_obj = json.dumps(ajax_resp_obj)
-        return HttpResponse(ajax_resp_obj, content_type='application/json')
-    last_requests = requests[:10]
-    context = {'requests': last_requests, 'last_edit_req': last_edit_req}
-    return render(request, 'hello/requests_page.html', context)
+        return ajax_resp_obj
+
+    def get(self, request, *args, **kwargs):
+        if request.is_ajax():
+            ajax_resp_obj = {}
+            if request.GET['last_edit_time'] != '':
+                last_edit_time = parse_datetime(
+                    request.GET['last_edit_time']
+                )
+                if not (
+                    RequestsLog.objects
+                    .filter(edit_time__gt=last_edit_time)
+                    .exists()
+                ):
+                    ajax_resp_obj = json.dumps(ajax_resp_obj)
+                    return HttpResponse(
+                        ajax_resp_obj,
+                        content_type='application/json'
+                    )
+            ajax_resp_obj = self.get_json_resp_obj()
+            return HttpResponse(ajax_resp_obj, content_type='application/json')
+        return super(RequestsView, self).get(request, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        for req in request.POST:
+            if req and req != 'csrfmiddlewaretoken':
+                req_obj = RequestsLog.objects.get(id=req)
+                req_obj.priority = request.POST[req]
+                req_obj.save()
+        if request.is_ajax():
+            ajax_resp_obj = self.get_json_resp_obj()
+            return HttpResponse(ajax_resp_obj, content_type='application/json')
+        return super(RequestsView, self).get(request, **kwargs)
 
 
 @login_required

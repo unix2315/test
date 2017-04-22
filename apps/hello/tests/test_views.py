@@ -2,7 +2,7 @@
 from django.test import TestCase
 from django.test import Client
 from django.test import RequestFactory
-from apps.hello.views import home_view, requests_view, edit_view
+from apps.hello.views import home_view, edit_view
 from datetime import date
 from apps.hello.models import Person, RequestsLog
 from apps.hello.forms import EditForm
@@ -110,12 +110,6 @@ class RequestsViewTest(TestCase):
         test_response = self.client.get(reverse('hello:requests_page'))
         self.assertTemplateUsed(test_response, 'hello/requests_page.html')
 
-    def test_requests_view_return_correct_status_code(self):
-        """Check, if requests_view return status code 200"""
-        test_request = RequestFactory().get(reverse('hello:requests_page'))
-        test_response = requests_view(test_request)
-        self.assertEqual(test_response.status_code, 200)
-
     def test_requests_view_return_proper_model_instance(self):
         """Check, if requests view return proper model
         instance in context"""
@@ -166,6 +160,7 @@ class RequestsViewTest(TestCase):
         """Check, if ajax request return last ten requests"""
         for i in range(20):
             RequestsLog(**REQUEST_DATA).save()
+            time.sleep(0.01)
         test_response = self.client.get(reverse('hello:requests_page'),
                                         {'last_edit_time': ''},
                                         HTTP_X_REQUESTED_WITH='XMLHttpRequest')
