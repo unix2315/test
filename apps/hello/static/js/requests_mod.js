@@ -243,7 +243,8 @@ AJAXREQ = (function(){
     var that,
         moduleName = 'AJAXREQ',
         ajaxReqPollingInterval,
-		newCount;
+		newCount,
+        csrftoken;
 	//Create data array to mock response from server 
 	function getMockAjaxData(setRand){
 		var ajaxReqArr,
@@ -331,6 +332,44 @@ AJAXREQ = (function(){
         }
         return $reqTrEls
     }
+
+    /**
+     * Helper method, get cookie from storage, by name
+     * @param name
+     * @returns {*}
+     */
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    /**
+     * Check if ajax request contains unsafe method
+     * @param method
+     * @returns {*}
+     */
+    function csrfSafeMethod(method) {
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method))
+    }
+    /**
+     * Set the header of AJAX request and add CSRF token
+     * @param xhr, settings
+     */
+    function setCSRFToken(xhr, settings){
+        csrftoken = getCookie('csrftoken');
+        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        }
+    }
     return{
         coreRegister: function() {
             CORE.registerModule(moduleName, this);
@@ -356,14 +395,17 @@ AJAXREQ = (function(){
         postAjaxPriorityData: function(postData){
             var ajaxRespObj;
             that.stopGetAjaxReqPolling();
-            console.log(postData);
-            $.post('/requests/', postData).done(
+            $.post({
+                    url: '/requests/',
+                    data: postData,
+                    beforeSend: setCSRFToken
+                }
+            ).done(
                 that.handleAjaxResponse,
                 that.startGetAjaxReqPolling
             );
             //ajaxRespObj = getMockAjaxData(1);
             //that.handleAjaxResponse(ajaxRespObj);
-            console.log('POST_Response');
             //that.startGetAjaxReqPolling();
             return false
         },
