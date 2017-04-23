@@ -26,9 +26,9 @@ class Person(models.Model):
         return '%s %s' % (self.name, self.last_name)
 
     def save(self, *args, **kwargs):
-        exist_person = Person.objects.first()
-        if exist_person is not None:
-            remove_unused_photo(self, exist_person)
+        exist_person = Person.objects.filter(id__exact=self.id)
+        if exist_person:
+            remove_unused_photo(self, exist_person[0])
         super(Person, self).save(*args, **kwargs)
         if self.photo:
             resize_photo(self)

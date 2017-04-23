@@ -10,6 +10,9 @@ from apps.hello.utils import return_json_response
 from apps.hello.utils import return_json_errors
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, TemplateView
+from django.views.generic import CreateView, UpdateView
+from django.core.urlresolvers import reverse
+from django.utils.decorators import method_decorator
 
 
 def home_view(request):
@@ -119,3 +122,54 @@ def edit_view(request):
         context['person_photo'] = person.photo.url
     context['form'] = edit_form
     return render(request, 'hello/edit_page.html', context)
+
+
+class EditView(UpdateView):
+    model = Person
+    form_class = EditForm
+    template_name = 'hello/edit_page.html'
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(EditView, self).dispatch(*args, **kwargs)
+
+    def get_success_url(self):
+        return reverse('hello:edit_page', kwargs={'pk': self.object.id})
+
+    def form_valid(self, form):
+        if form.has_changed():
+            form.save()
+        if self.request.is_ajax():
+            json_resp = return_json_response(self.object)
+            return HttpResponse(json_resp)
+        messages.add_message(
+            self.request,
+            messages.INFO,
+            "Form submit successfully!"
+        )
+        return super(EditView, self).form_valid(form)
+
+    def form_invalid(self, form):
+        if self.request.is_ajax():
+            json_resp = return_json_errors(form)
+            return HttpResponse(json_resp)
+        return super(EditView, self).form_invalid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super(EditView, self).get_context_data(**kwargs)
+        if self.object.photo:
+            context['person_photo'] = self.object.photo.url
+        return context
+
+
+class CreatePersonView(CreateView):
+    model = Person
+    form_class = EditForm
+    template_name = 'hello/edit_page.html'
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(CreatePersonView, self).dispatch(*args, **kwargs)
+
+    def get_success_url(self):
+        return reverse('hello:edit_page', kwargs={'pk': self.object.id})

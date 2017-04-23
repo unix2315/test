@@ -302,30 +302,32 @@ class EditPageViewTest(TestCase):
 
     def test_request_to_edit_page_return_correct_status_code(self):
         """Check, if request to edit_page return status code 200"""
-        test_response = self.client.get('/edit/')
+        test_response = self.client.get('/edit/1/')
         self.assertEqual(test_response.status_code, 200)
 
     def test_request_to_edit_page_uses_proper_template(self):
         """Check, if edit_page view render right template"""
-        test_response = self.client.get('/edit/')
+        test_response = self.client.get('/edit/1/')
         self.assertTemplateUsed(test_response, 'hello/edit_page.html')
-
-    def test_edit_view_return_correct_status_code(self):
-        """Check, if edit_view return status code 200"""
-        self.admin = User.objects.get(pk=1)
-        test_request = RequestFactory().get(reverse('hello:edit_page'))
-        test_request.user = self.admin
-        test_response = edit_view(test_request)
-        self.assertEqual(test_response.status_code, 200)
 
     def test_edit_page_uses_EditForm(self):
         """Check, if edit_view is return EditForm instance"""
-        test_response = self.client.get(reverse('hello:edit_page'))
+        test_response = self.client.get(
+            reverse(
+                'hello:edit_page',
+                kwargs={'pk': 1}
+            )
+        )
         self.assertIsInstance(test_response.context['form'], EditForm)
 
     def test_edit_view_displays_EditForm(self):
         """Check, if proper html of EditForm contains in edit_page"""
-        test_response = self.client.get(reverse('hello:edit_page'))
+        test_response = self.client.get(
+            reverse(
+                'hello:edit_page',
+                kwargs={'pk': 1}
+            )
+        )
         self.assertContains(test_response, 'form-control', count=8)
         self.assertContains(
             test_response,
@@ -340,7 +342,12 @@ class EditPageViewTest(TestCase):
         """Check, if edit_view is bound existing
         Person model instance data to EditForm"""
         person = Person.objects.first()
-        test_response = self.client.get(reverse('hello:edit_page'))
+        test_response = self.client.get(
+            reverse(
+                'hello:edit_page',
+                kwargs={'pk': person.pk}
+            )
+        )
         self.assertIn(
             person.name,
             str(test_response.context['form']['name'])
@@ -351,25 +358,25 @@ class EditPageViewTest(TestCase):
         )
 
     def test_edit_view_post_request(self):
-        """Check, if EditForm post request return proper data"""
+        """Check, if EditForm post success request,
+         return proper status code, and redirect to proper url"""
         test_response = self.client.post(
-            reverse('hello:edit_page'),
-            VALID_DATA
+            reverse(
+                'hello:edit_page',
+                kwargs={'pk': 1}
+            ), VALID_DATA
         )
-        self.assertEqual(test_response.status_code, 200)
-        self.assertContains(test_response, "Form submit successfully!")
-
-    def test_edit_view_create_new_Person_istance(self):
-        """Check, if EditForm post request create new Person instance,
-        if there are no one in DB"""
-        Person.objects.all().delete()
-        self.assertFalse(Person.objects.first())
-        self.client.post(reverse('hello:edit_page'), VALID_DATA)
-        self.assertTrue(Person.objects.first())
+        self.assertEqual(test_response.status_code, 302)
+        self.assertIn('/edit/1/', test_response.url)
 
     def test_edit_view_post_request_update_data_in_DB(self):
         """Check, if EditForm post request update person data in DB"""
-        self.client.post(reverse('hello:edit_page'), VALID_DATA)
+        self.client.post(
+            reverse(
+                'hello:edit_page',
+                kwargs={'pk': 1}
+            ), VALID_DATA
+        )
         person_data = Person.objects.first()
         self.assertEqual(VALID_DATA['name'], person_data.name)
         self.assertEqual(VALID_DATA['last_name'], person_data.last_name)
@@ -382,7 +389,10 @@ class EditPageViewTest(TestCase):
         """Check, if EditForm post request with invalid data,
         don't update person data in DB, but shows errors"""
         test_response = self.client.post(
-            reverse('hello:edit_page'),
+            reverse(
+                'hello:edit_page',
+                kwargs={'pk': 1}
+            ),
             INVALID_DATA
         )
         person_data = Person.objects.first()
@@ -412,7 +422,10 @@ class EditPageViewTest(TestCase):
         """Check, if edit_view ajax post request with valid data,
         return proper JSON response"""
         self.response = self.client.post(
-            reverse('hello:edit_page'),
+            reverse(
+                'hello:edit_page',
+                kwargs={'pk': 1}
+            ),
             VALID_DATA,
             HTTP_X_REQUESTED_WITH='XMLHttpRequest'
         )
@@ -423,7 +436,10 @@ class EditPageViewTest(TestCase):
         """Check, if edit_view ajax post request with invalid data,
         return errordict with errors"""
         self.response = self.client.post(
-            reverse('hello:edit_page'),
+            reverse(
+                'hello:edit_page',
+                kwargs={'pk': 1}
+            ),
             INVALID_DATA,
             HTTP_X_REQUESTED_WITH='XMLHttpRequest'
         )
@@ -444,7 +460,12 @@ class EditPageViewTest(TestCase):
     def test_edit_page_return_redirect_to_login_page(self):
         """Check, if AnonymousUser request to edit_page,
          return status code 302 and redirect to login_page"""
-        test_request = RequestFactory().get(reverse('hello:edit_page'))
+        test_request = RequestFactory().get(
+            reverse(
+                'hello:edit_page',
+                kwargs={'pk': 1}
+            )
+        )
         test_request.user = AnonymousUser()
         test_response = edit_view(test_request)
         self.assertEqual(test_response.status_code, 302)
@@ -462,3 +483,18 @@ class LoginTest(TestCase):
         """Check, if login_page view render right template"""
         test_response = self.client.get('/login/')
         self.assertTemplateUsed(test_response, 'registration/login.html')
+
+
+class CreatePersonViewTest(TestCase):
+
+    def test_create_view_create_new_Person_istance(self):
+        """Check, if CreatePersonView post request create new Person instance,
+        if there are no one in DB"""
+        Person.objects.all().delete()
+        self.assertFalse(Person.objects.first())
+        self.client.post(
+            reverse(
+                'hello:create_page',
+            ), VALID_DATA
+        )
+        self.assertTrue(Person.objects.first())
