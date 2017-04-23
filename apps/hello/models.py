@@ -26,11 +26,8 @@ class Person(models.Model):
         return '%s %s' % (self.name, self.last_name)
 
     def save(self, *args, **kwargs):
-        try:
-            exist_person = Person.objects.get(id=self.id)
-        except Exception:
-            pass
-        else:
+        exist_person = Person.objects.first()
+        if exist_person is not None:
             remove_unused_photo(self, exist_person)
         super(Person, self).save(*args, **kwargs)
         if self.photo:

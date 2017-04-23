@@ -19,7 +19,7 @@ def remove_unused_photo(instance, exist_person):
 
 
 def user_directory_path(instance, filename):
-    return 'person_{0}/{1}/{2}'.format(
+    return 'person_{0}/{1}_{2}'.format(
         instance.id,
         instance.name,
         filename
