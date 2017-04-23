@@ -9,13 +9,22 @@ import json
 from apps.hello.utils import return_json_response
 from apps.hello.utils import return_json_errors
 from django.contrib.auth.decorators import login_required
-from django.views.generic import ListView
+from django.views.generic import ListView, TemplateView
 
 
 def home_view(request):
     person = Person.objects.first()
     context = {'person': person}
     return render(request, 'hello/home_page.html', context)
+
+
+class HomeView(TemplateView):
+    template_name = 'hello/home_page.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(HomeView, self).get_context_data(**kwargs)
+        context['person'] = Person.objects.first()
+        return context
 
 
 class RequestsView(ListView):
