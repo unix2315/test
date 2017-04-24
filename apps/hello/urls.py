@@ -10,7 +10,8 @@ urlpatterns = [
     url(r'^$', HomeView.as_view(), name='home_page'),
     url(r'^requests/$', RequestsView.as_view(), name='requests_page'),
     # url(r'^edit/$', edit_view, name='edit_page'),
-    url(r'^edit/(?P<pk>\d+)/$', EditView.as_view(), name='edit_page'),
+    # url(r'^edit/(?P<pk>\d+)/$', EditView.as_view(), name='edit_page'),
+    url(r'^edit/$', EditView.as_view(), name='edit_page'),
     url(
         r'^create_person/$',
         CreatePersonView.as_view(),

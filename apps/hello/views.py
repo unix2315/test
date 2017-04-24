@@ -10,7 +10,7 @@ from apps.hello.utils import return_json_response
 from apps.hello.utils import return_json_errors
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, TemplateView
-from django.views.generic import CreateView, UpdateView
+from django.views.generic import CreateView, FormView
 from django.core.urlresolvers import reverse
 from django.utils.decorators import method_decorator
 
@@ -124,23 +124,24 @@ def edit_view(request):
     return render(request, 'hello/edit_page.html', context)
 
 
-class EditView(UpdateView):
-    model = Person
+class EditView(FormView):
     form_class = EditForm
     template_name = 'hello/edit_page.html'
+    instance = None
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super(EditView, self).dispatch(*args, **kwargs)
 
     def get_success_url(self):
-        return reverse('hello:edit_page', kwargs={'pk': self.object.id})
+        return reverse('hello:edit_page')
 
     def form_valid(self, form):
         if form.has_changed():
             form.save()
+        self.instance = Person.objects.first()
         if self.request.is_ajax():
-            json_resp = return_json_response(self.object)
+            json_resp = return_json_response(self.instance)
             return HttpResponse(json_resp)
         messages.add_message(
             self.request,
@@ -157,9 +158,17 @@ class EditView(UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super(EditView, self).get_context_data(**kwargs)
-        if self.object.photo:
-            context['person_photo'] = self.object.photo.url
+        self.instance = Person.objects.first()
+        if self.instance and self.instance.photo:
+            context['person_photo'] = self.instance.photo.url
         return context
+
+    def get_form_kwargs(self):
+        kwargs = super(EditView, self).get_form_kwargs()
+        self.instance = Person.objects.first()
+        if self.instance is not None:
+            kwargs.update({'instance': self.instance})
+        return kwargs
 
 
 class CreatePersonView(CreateView):

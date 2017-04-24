@@ -4,7 +4,7 @@
     <div class="col-md-2">
         {% if person %}
         <h4>
-            <a href="{% url 'hello:edit_page' person.pk %}">Edit </a>|
+            <a href="{% url 'hello:edit_page' %}">Edit </a>|
             <a href="{% edit_link person %}"> (admin)</a>
         </h4>
     {% endif %}
@@ -42,7 +42,7 @@
         <div class="col-md-1"></div>
         <div class="col-md-6">
             <div><h2>No person was found</h2></div><br><br>
-            <h4><a href="{% url 'hello:create_page' %}">Add person</a></h4>
+            <h4><a href="{% url 'hello:edit_page' %}">Add person</a></h4>
         </div>
     </div>
 {% endif %}

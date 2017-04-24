@@ -19,7 +19,7 @@ def remove_unused_photo(instance, exist_person):
 
 
 def user_directory_path(instance, filename):
-    return 'person_{0}/{1}_{2}'.format(
+    return 'person_photo/{1}_{2}'.format(
         instance.id,
         instance.name,
         filename
@@ -39,6 +39,7 @@ def return_json_response(person):
     resp = dict()
     resp['status'] = 'OK'
     if person and person.photo:
+        print(person.photo.url)
         resp['person_photo'] = person.photo.url
     json_resp = json.dumps(resp)
     return json_resp
