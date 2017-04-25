@@ -2,6 +2,7 @@
 from apps.hello.models import ModelsLog, Person, RequestsLog
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+from apps.hello.utils import remove_photo
 
 
 LOG_MODELS = [Person, RequestsLog]
@@ -45,3 +46,12 @@ def model_del_handler(sender, **kwargs):
             )
         )
         model_log.save()
+
+
+@receiver(post_delete)
+def photo_file_del_handler(sender, **kwargs):
+    obj_name = sender.__name__
+    if sender == Person:
+        if kwargs['instance'].photo:
+            remove_photo(kwargs['instance'].photo)
+            print('%s photo is deleted' % obj_name)

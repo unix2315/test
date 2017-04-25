@@ -35,6 +35,11 @@ class Person(models.Model):
         if self.photo:
             resize_photo(self)
 
+    def delete(self, *args, **kwargs):
+        if self.photo:
+            remove_photo(self.photo)
+        super(Person, self).delete(*args, **kwargs)
+
 
 class RequestsLog(models.Model):
     PRIORITY = (
