@@ -59,3 +59,9 @@ class PersonModelTest(TestCase):
         self.second_photo_file = self.test_person.photo.path
         self.assertTrue(os.path.exists(self.second_photo_file))
         self.assertFalse(os.path.exists(self.first_photo_file))
+
+    def test_delete_method_remove_photo_file(self):
+        """Check, if model delete method delete unused images"""
+        self.assertTrue(os.path.exists(self.first_photo_file))
+        self.test_person.delete()
+        self.assertFalse(os.path.exists(self.first_photo_file))
