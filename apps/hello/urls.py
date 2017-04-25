@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from django.conf.urls import url
-from apps.hello.views import edit_view
 from django.contrib.auth.views import login, logout
 from apps.hello.views import RequestsView, HomeView
 from apps.hello.views import CreatePersonView, EditView

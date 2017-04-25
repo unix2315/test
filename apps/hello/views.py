@@ -15,12 +15,6 @@ from django.core.urlresolvers import reverse
 from django.utils.decorators import method_decorator
 
 
-def home_view(request):
-    person = Person.objects.first()
-    context = {'person': person}
-    return render(request, 'hello/home_page.html', context)
-
-
 class HomeView(TemplateView):
     template_name = 'hello/home_page.html'
 
@@ -127,11 +121,22 @@ def edit_view(request):
 class EditView(FormView):
     form_class = EditForm
     template_name = 'hello/edit_page.html'
-    instance = None
+    object = None
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super(EditView, self).dispatch(*args, **kwargs)
+
+    def get_object(self):
+        obj = Person.objects.first()
+        return obj
+
+    def get_form_kwargs(self):
+        kwargs = super(EditView, self).get_form_kwargs()
+        self.object = self.get_object()
+        if self.object:
+            kwargs.update({'instance': self.object})
+        return kwargs
 
     def get_success_url(self):
         return reverse('hello:edit_page')
@@ -139,9 +144,9 @@ class EditView(FormView):
     def form_valid(self, form):
         if form.has_changed():
             form.save()
-        self.instance = Person.objects.first()
+        self.object = self.get_object()
         if self.request.is_ajax():
-            json_resp = return_json_response(self.instance)
+            json_resp = return_json_response(self.object)
             return HttpResponse(json_resp)
         messages.add_message(
             self.request,
@@ -158,17 +163,10 @@ class EditView(FormView):
 
     def get_context_data(self, **kwargs):
         context = super(EditView, self).get_context_data(**kwargs)
-        self.instance = Person.objects.first()
-        if self.instance and self.instance.photo:
-            context['person_photo'] = self.instance.photo.url
+        self.object = self.get_object()
+        if self.object and self.object.photo:
+            context['person_photo'] = self.object.photo.url
         return context
-
-    def get_form_kwargs(self):
-        kwargs = super(EditView, self).get_form_kwargs()
-        self.instance = Person.objects.first()
-        if self.instance is not None:
-            kwargs.update({'instance': self.instance})
-        return kwargs
 
 
 class CreatePersonView(CreateView):

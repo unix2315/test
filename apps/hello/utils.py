@@ -39,7 +39,6 @@ def return_json_response(person):
     resp = dict()
     resp['status'] = 'OK'
     if person and person.photo:
-        print(person.photo.url)
         resp['person_photo'] = person.photo.url
     json_resp = json.dumps(resp)
     return json_resp

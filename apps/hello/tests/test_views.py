@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase
 from django.test import Client
-from django.test import RequestFactory
-from apps.hello.views import home_view, edit_view
 from datetime import date
 from apps.hello.models import Person, RequestsLog
 from apps.hello.forms import EditForm
 import json
 from django.core.urlresolvers import reverse
 import time
-from django.contrib.auth.models import User, AnonymousUser
 
 
 PERSON_DATA = {
@@ -57,12 +54,6 @@ class HomePageViewTest(TestCase):
         """Check, if request to home_page right template"""
         response = self.client.get('/')
         self.assertTemplateUsed(response, 'hello/home_page.html')
-
-    def test_home_view_return_correct_status_code(self):
-        """Check, if home_view return status code 200"""
-        test_request = RequestFactory().get(reverse('hello:home_page'))
-        test_response = home_view(test_request)
-        self.assertEqual(test_response.status_code, 200)
 
     def test_home_view_return_proper_model_instance(self):
         """Check, if home view return proper model
@@ -362,7 +353,7 @@ class EditPageViewTest(TestCase):
             VALID_DATA
         )
         self.assertEqual(test_response.status_code, 302)
-        self.assertIn('/edit/', test_response.url)
+        self.assertIn('edit', test_response.url)
 
     def test_edit_view_create_new_Person_istance(self):
         """Check, if EditForm post request create new Person instance,
@@ -452,11 +443,8 @@ class EditPageViewTest(TestCase):
     def test_edit_page_return_redirect_to_login_page(self):
         """Check, if AnonymousUser request to edit_page,
          return status code 302 and redirect to login_page"""
-        test_request = RequestFactory().get(
-            reverse('hello:edit_page')
-        )
-        test_request.user = AnonymousUser()
-        test_response = edit_view(test_request)
+        self.client = Client()
+        test_response = self.client.get('/edit/')
         self.assertEqual(test_response.status_code, 302)
         self.assertIn('login', test_response.url)
 
