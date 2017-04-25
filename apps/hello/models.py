@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 from django.db import models
 from apps.hello.utils import user_directory_path, resize_photo
-from apps.hello.utils import remove_unused_photo
+from apps.hello.utils import remove_photo
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 
@@ -26,9 +26,11 @@ class Person(models.Model):
         return '%s %s' % (self.name, self.last_name)
 
     def save(self, *args, **kwargs):
-        exist_person = Person.objects.filter(id__exact=self.id)
-        if exist_person:
-            remove_unused_photo(self, exist_person[0])
+        exist_person = Person.objects.filter(id=self.id)
+        if exist_person and exist_person.first().photo:
+            exist_photo = exist_person.first().photo
+            if not self.photo or self.photo.path != exist_photo.path:
+                remove_photo(exist_photo)
         super(Person, self).save(*args, **kwargs)
         if self.photo:
             resize_photo(self)

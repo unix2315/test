@@ -5,6 +5,12 @@ from PIL import Image
 import json
 
 
+def remove_photo(photo):
+    filename = photo.path
+    if os.path.exists(filename):
+        os.remove(filename)
+
+
 def remove_unused_photo(instance, exist_person):
     exist_photo = exist_person.photo
     if exist_photo:
