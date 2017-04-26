@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 import sys
+import logging
 
 PROJECT_DIR = os.path.dirname(os.path.dirname(__file__))
 BASE_DIR = os.path.dirname(PROJECT_DIR)
@@ -133,3 +134,90 @@ TEMPLATE_DIRS = (
 
 # Turn off south during test
 SOUTH_TESTS_MIGRATE = False
+
+# Dir for .log files
+LOGS_DIR = os.path.join(BASE_DIR, 'logs')
+
+# Create dir if not exist
+if not os.path.exists(LOGS_DIR):
+    os.mkdir(LOGS_DIR)
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        }
+    },
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s '
+                      '%(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+            'filters': ['require_debug_true']
+        },
+        'app_info_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'maxBytes': 1024 * 1024 * 5,
+            'backupCount': 7,
+            'filename': 'logs/app_info.log',
+            'formatter': 'verbose'
+        },
+        'security_file': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'maxBytes': 1024 * 1024 * 5,
+            'backupCount': 7,
+            'filename': 'logs/security.log',
+            'filters': ['require_debug_false'],
+            'formatter': 'verbose'
+        },
+        'request_error_file': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'maxBytes': 1024 * 1024 * 5,
+            'backupCount': 7,
+            'filename': 'logs/request_error.log',
+            'filters': ['require_debug_false'],
+            'formatter': 'verbose'
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'django.utils.log.AdminEmailHandler'
+        }
+    },
+    'loggers': {
+        'apps.hello': {
+            'handlers': ['console', 'app_info_file'],
+            'level': 'INFO',
+        },
+        'django.request': {
+            'handlers': ['console', 'mail_admins', 'request_error_file'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'django.security': {
+            'handlers': ['mail_admins', 'security_file'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+}
+
+# Disable logging during tests
+if 'test' in sys.argv:
+    logging.disable(logging.CRITICAL)

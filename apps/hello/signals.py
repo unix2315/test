@@ -50,8 +50,7 @@ def model_del_handler(sender, **kwargs):
 
 @receiver(post_delete)
 def photo_file_del_handler(sender, **kwargs):
-    obj_name = sender.__name__
-    if sender == Person:
+    model_name = sender.__name__
+    if model_name == 'Person':
         if kwargs['instance'].photo:
             remove_photo(kwargs['instance'].photo)
-            print('%s photo is deleted' % obj_name)

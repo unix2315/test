@@ -2,7 +2,7 @@
 from django.conf.urls import url
 from django.contrib.auth.views import login, logout
 from apps.hello.views import RequestsView, HomeView
-from apps.hello.views import CreatePersonView, EditView
+from apps.hello.views import EditView
 
 
 urlpatterns = [
@@ -11,11 +11,6 @@ urlpatterns = [
     # url(r'^edit/$', edit_view, name='edit_page'),
     # url(r'^edit/(?P<pk>\d+)/$', EditView.as_view(), name='edit_page'),
     url(r'^edit/$', EditView.as_view(), name='edit_page'),
-    url(
-        r'^create_person/$',
-        CreatePersonView.as_view(),
-        name='create_page'
-    ),
     url(r'^login/$', login, name='login'),
     url(
         r'^logout/',

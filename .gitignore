@@ -5,6 +5,7 @@
 *.swo
 *.swn
 *.esproj
+*.log
 .idea
 .Ds_Store
 *~

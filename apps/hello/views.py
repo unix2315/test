@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from django.shortcuts import render
 from django.http import HttpResponse
 from apps.hello.models import Person, RequestsLog
 from django.utils.dateparse import parse_datetime
@@ -10,9 +9,13 @@ from apps.hello.utils import return_json_response
 from apps.hello.utils import return_json_errors
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, TemplateView
-from django.views.generic import CreateView, FormView
+from django.views.generic import FormView
 from django.core.urlresolvers import reverse
 from django.utils.decorators import method_decorator
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class HomeView(TemplateView):
@@ -20,7 +23,10 @@ class HomeView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(HomeView, self).get_context_data(**kwargs)
-        context['person'] = Person.objects.first()
+        person = Person.objects.first()
+        if not person:
+            logger.info('No person was found')
+        context['person'] = person
         return context
 
 
@@ -92,32 +98,6 @@ class RequestsView(ListView):
         return super(RequestsView, self).get(request, **kwargs)
 
 
-@login_required
-def edit_view(request):
-    person = Person.objects.first()
-    edit_form = EditForm(instance=person)
-    context = dict()
-    if request.method == 'POST':
-        edit_form = EditForm(request.POST, request.FILES, instance=person)
-        if edit_form.is_valid():
-            edit_form.save()
-            if request.is_ajax():
-                json_resp = return_json_response(person)
-                return HttpResponse(json_resp)
-            messages.add_message(
-                request,
-                messages.INFO,
-                "Form submit successfully!"
-            )
-        if request.is_ajax():
-            json_resp = return_json_errors(edit_form)
-            return HttpResponse(json_resp)
-    if person and person.photo:
-        context['person_photo'] = person.photo.url
-    context['form'] = edit_form
-    return render(request, 'hello/edit_page.html', context)
-
-
 class EditView(FormView):
     form_class = EditForm
     template_name = 'hello/edit_page.html'
@@ -144,6 +124,10 @@ class EditView(FormView):
     def form_valid(self, form):
         if form.has_changed():
             form.save()
+            logger.info(
+                '%s has changed data in %s field(s)' %
+                (self.request.user, form.changed_data)
+            )
         self.object = self.get_object()
         if self.request.is_ajax():
             json_resp = return_json_response(self.object)
@@ -167,16 +151,3 @@ class EditView(FormView):
         if self.object and self.object.photo:
             context['person_photo'] = self.object.photo.url
         return context
-
-
-class CreatePersonView(CreateView):
-    model = Person
-    form_class = EditForm
-    template_name = 'hello/edit_page.html'
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(CreatePersonView, self).dispatch(*args, **kwargs)
-
-    def get_success_url(self):
-        return reverse('hello:edit_page', kwargs={'pk': self.object.id})

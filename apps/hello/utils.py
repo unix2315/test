@@ -3,25 +3,16 @@ from __future__ import unicode_literals
 import os
 from PIL import Image
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def remove_photo(photo):
     filename = photo.path
     if os.path.exists(filename):
         os.remove(filename)
-
-
-def remove_unused_photo(instance, exist_person):
-    exist_photo = exist_person.photo
-    if exist_photo:
-        if (
-            not instance.photo or
-            exist_photo.path !=
-            instance.photo.path
-        ):
-            exist_filename = exist_photo.path
-            if os.path.exists(exist_filename):
-                os.remove(exist_filename)
+        logger.info('%s has been removed' % filename)
 
 
 def user_directory_path(instance, filename):
