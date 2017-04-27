@@ -13,5 +13,6 @@ build
 .noseids
 media
 static
+logs
 *.dat
 .env
