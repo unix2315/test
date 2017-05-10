@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 import sys
+from django.conf import global_settings
+
 
 PROJECT_DIR = os.path.dirname(os.path.dirname(__file__))
 BASE_DIR = os.path.dirname(PROJECT_DIR)
@@ -43,6 +45,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'south',
+    'ws4redis',
 
     'apps.hello',
 )
@@ -60,7 +63,23 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'fortytwo_test_task.urls'
 
-WSGI_APPLICATION = 'fortytwo_test_task.wsgi.application'
+
+WSGI_APPLICATION = 'ws4redis.django_runserver.application'
+
+WEBSOCKET_URL = '/ws/'
+WS4REDIS_EXPIRE = 7200
+WS4REDIS_PREFIX = 'ws'
+
+WS4REDIS_CONNECTION = {
+    'host': '192.168.1.10',
+    'port': 6379,
+    'db': 0,
+    'password': None,
+}
+
+TEMPLATE_CONTEXT_PROCESSORS = \
+    global_settings.TEMPLATE_CONTEXT_PROCESSORS + \
+    ("ws4redis.context_processors.default",)
 
 
 # Database
