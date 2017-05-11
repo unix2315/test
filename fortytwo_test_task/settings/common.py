@@ -111,6 +111,8 @@ MEDIA_TEST_ROOT = os.path.join(OUTER_DIR, 'uploads/test/')
 # Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
 MEDIA_URL = '/uploads/'
 
+LOGIN_URL = '/login/'
+
 LOGIN_REDIRECT_URL = '/'
 
 # Static files (CSS, JavaScript, Images)

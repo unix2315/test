@@ -37,7 +37,7 @@ jQuery(document).ready(function($) {
 
 	// send message to the server using Ajax
 	function sendMessage() {
-		$.post('{% url "group_chat" %}', {
+		$.post('{% url "chatserver:group_chat" %}', {
 			group: $('#group').val(),
 			message: $('#text_message').val()
 		});

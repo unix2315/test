@@ -11,8 +11,9 @@ class BroadcastChatView(TemplateView):
     template_name = 'broadcast_chat.html'
 
     def get(self, request, *args, **kwargs):
-        welcome = RedisMessage('Hello everybody')  # create a welcome message to be sent to everybody
-        RedisPublisher(facility='foobar', broadcast=True).publish_message(welcome)
+        welcome = RedisMessage('Hello everybody')
+        RedisPublisher(facility='foobar', broadcast=True)\
+            .publish_message(welcome)
         return super(BroadcastChatView, self).get(request, *args, **kwargs)
 
 
@@ -29,7 +30,10 @@ class UserChatView(TemplateView):
         return super(UserChatView, self).dispatch(*args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        redis_publisher = RedisPublisher(facility='foobar', users=[request.POST.get('user')])
+        redis_publisher = RedisPublisher(
+            facility='foobar',
+            users=[request.POST.get('user')]
+        )
         message = RedisMessage(request.POST.get('message'))
         redis_publisher.publish_message(message)
         return HttpResponse('OK')
@@ -48,7 +52,10 @@ class GroupChatView(TemplateView):
         return super(GroupChatView, self).dispatch(*args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        redis_publisher = RedisPublisher(facility='foobar', groups=[request.POST.get('group')])
+        redis_publisher = RedisPublisher(
+            facility='foobar',
+            groups=[request.POST.get('group')]
+        )
         message = RedisMessage(request.POST.get('message'))
         redis_publisher.publish_message(message)
         return HttpResponse('OK')

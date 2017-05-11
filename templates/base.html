@@ -35,9 +35,9 @@
                 {% block login %}
                 <div class="col-md-3 center-block">
                     {% if user.username %}
-                        <h4>Hello, {{ user.username }}! | <a href="{% url 'hello:logout' %}">Logout</a></h4>
+                        <h4>Hello, {{ user.username }}! | <a href="{% url 'logout' %}">Logout</a></h4>
                     {% else %}
-                        <h4><a href="{% url 'hello:login' %}">Login</a>, please!</h4>
+                        <h4><a href="{% url 'login' %}">Login</a>, please!</h4>
                     {% endif %}
                 </div>
                 {% endblock login %}

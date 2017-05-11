@@ -79,7 +79,8 @@ INSTALLED_APPS = (
     'chatserver',
 )
 
-# These two middleware classes must be present, if messages sent or received through a websocket
+# These two middleware classes must be present,
+# if messages sent or received through a websocket
 # connection shall be delivered to an authenticated Django user.
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',

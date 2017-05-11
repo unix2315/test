@@ -8,11 +8,13 @@ from .views import BroadcastChatView, UserChatView, GroupChatView
 admin.autodiscover()
 
 
-urlpatterns = patterns('',
+urlpatterns = patterns(
+    '',
     url(r'^chat/$', BroadcastChatView.as_view(), name='broadcast_chat'),
     url(r'^userchat/$', UserChatView.as_view(), name='user_chat'),
     url(r'^groupchat/$', GroupChatView.as_view(), name='group_chat'),
-    #url(r'^accounts/', include('django.contrib.auth.urls')),
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^$', RedirectView.as_view(url=reverse_lazy('chatserver:broadcast_chat'))),
+    url(r'^$', RedirectView.as_view(
+        url=reverse_lazy('chatserver:broadcast_chat')
+    )),
 ) + staticfiles_urlpatterns()
