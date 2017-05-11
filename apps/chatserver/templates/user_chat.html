@@ -38,7 +38,7 @@
 
 		// send message to the server using Ajax
 		function sendMessage() {
-			$.post('{% url "user_chat" %}', {
+			$.post('{% url "chatserver:user_chat" %}', {
 				user: $('#user').val(),
 				message: $('#text_message').val()
 			});

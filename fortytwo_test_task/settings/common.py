@@ -47,6 +47,7 @@ INSTALLED_APPS = (
     'south',
     'ws4redis',
 
+    'apps.chatserver',
     'apps.hello',
 )
 
@@ -67,19 +68,13 @@ ROOT_URLCONF = 'fortytwo_test_task.urls'
 WSGI_APPLICATION = 'ws4redis.django_runserver.application'
 
 WEBSOCKET_URL = '/ws/'
-WS4REDIS_EXPIRE = 7200
+WS4REDIS_EXPIRE = 3600
 WS4REDIS_PREFIX = 'ws'
-
-WS4REDIS_CONNECTION = {
-    'host': '192.168.1.10',
-    'port': 6379,
-    'db': 0,
-    'password': None,
-}
 
 TEMPLATE_CONTEXT_PROCESSORS = \
     global_settings.TEMPLATE_CONTEXT_PROCESSORS + \
-    ("ws4redis.context_processors.default",)
+    ("ws4redis.context_processors.default",
+     "django.core.context_processors.request",)
 
 
 # Database

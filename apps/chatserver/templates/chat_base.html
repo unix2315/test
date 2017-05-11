@@ -24,14 +24,14 @@
 			</div>
 			<nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
 				<ul class="nav navbar-nav">
-					<li class="{% active request 'broadcast_chat' %}">
-						<a href="{% url 'broadcast_chat' %}">Broadcast Chat</a>
+					<li class="{% active request 'chatserver:broadcast_chat' %}">
+						<a href="{% url 'chatserver:broadcast_chat' %}">Broadcast Chat</a>
 					</li>
-					<li class="{% active request 'user_chat' %}">
-						<a href="{% url 'user_chat' %}">User Chat</a>
+					<li class="{% active request 'chatserver:user_chat' %}">
+						<a href="{% url 'chatserver:user_chat' %}">User Chat</a>
 					</li>
-					<li class="{% active request 'group_chat' %}">
-						<a href="{% url 'group_chat' %}">Group Chat</a>
+					<li class="{% active request 'chatserver:group_chat' %}">
+						<a href="{% url 'chatserver:group_chat' %}">Group Chat</a>
 					</li>
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
@@ -39,7 +39,7 @@
 					{% if request.user.is_authenticated %}
 						<a class="dropdown-toggle" href="#" data-toggle="dropdown">{{ request.user.get_full_name }} <span class="caret"></span></a>
 						<div class="dropdown-menu" style="padding:1em;">
-							<form class="form" action="{% url 'logout' %}" method="post">{% csrf_token %}
+							<form class="form" action="{% url 'hello:logout' %}" method="post">{% csrf_token %}
 								<input type="hidden" name="next" value="{{ request.get_full_path }}" />
 								<input class="btn btn-success btn-block" type="submit" value="Logout">
 							</form>
@@ -48,7 +48,7 @@
 						<a class="dropdown-toggle" href="#" data-toggle="dropdown">Login <span class="caret"></span></a>
 						<div class="dropdown-menu" style="padding:1em;">
 							<p class="help-block">Login as <em>john</em> or <em>mary</em> using password <em>secret</em>.</p>
-							<form class="form" action="{% url 'login' %}" method="post">{% csrf_token %}
+							<form class="form" action="{% url 'hello:login' %}" method="post">{% csrf_token %}
 								<input type="hidden" name="next" value="{{ request.get_full_path }}" />
 								<div class="form-group">
 									<input class="form-control" placeholder="Username" name="username" type="text">
