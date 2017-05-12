@@ -5,4 +5,4 @@ redis-cli config get save
 redis-cli BGSAVE
 redis-cli config get logfile
 ls -l /var/log/redis/
-su redis tail /var/log/redis/redis-server.log -n 100
+tail /var/log/redis/redis-server.log -n 100
