@@ -11,6 +11,7 @@
 git_ignore
 models_log
 build
+logs
 .noseids
 media
 *.dat

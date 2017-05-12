@@ -1,3 +1,3 @@
 #!/bin/sh
 
-redis-cli config set stop-writes-on-bgsave-error no
+redis-cli config get dir
