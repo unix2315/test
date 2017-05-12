@@ -4,5 +4,4 @@ redis-cli config get stop-writes-on-bgsave-error
 redis-cli config get save
 redis-cli BGSAVE
 redis-cli config get logfile
-ls -l
-sudo cat /var/log/redis/redis-server.log
+ls -l /var/log/redis/
