@@ -1,3 +1,3 @@
 #!/bin/sh
 
-redis-cli config get dir
+redis-cli config set dir ./var/redis/
