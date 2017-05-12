@@ -1,3 +1,3 @@
 #!/bin/sh
 
-ls -l
+redis-cli config set save ""
