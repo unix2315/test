@@ -9,7 +9,7 @@ from django.core.management import call_command
 class Migration(DataMigration):
 
     def forwards(self, orm):
-        pass
+        call_command("loaddata", "initial_data.json")
 
     def backwards(self, orm):
         "Write your backwards methods here."

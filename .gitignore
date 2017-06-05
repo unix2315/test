@@ -13,5 +13,7 @@ models_log
 build
 .noseids
 media
+log
+var
 *.dat
 .env

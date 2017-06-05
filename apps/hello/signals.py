@@ -9,6 +9,8 @@ LOG_MODELS = [Person, RequestsLog]
 
 @receiver(post_save)
 def model_save_handler(sender, created, **kwargs):
+    if kwargs['raw']:
+        return
     obj_name = sender.__name__
     if sender in LOG_MODELS:
         if created:
